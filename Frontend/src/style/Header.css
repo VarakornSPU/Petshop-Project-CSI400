@@ -1,0 +1,31 @@
+.header { position: fixed; top:0; left:0; right:0; z-index:1000; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); transition: all .3s ease; }
+
+.header-content { display:flex; justify-content:space-between; align-items:center; padding:1rem 0; }
+
+.logo { font-size:1.75rem; font-weight:700; letter-spacing:-0.02em; background: linear-gradient(135deg,#ffffff 0%,#888888 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+.nav { display:none; gap:2.5rem; }
+
+.nav a { color: var(--muted-foreground); text-decoration:none; font-size:.9rem; font-weight:500; transition: all .3s ease; position:relative; }
+
+.nav a:hover { color: var(--foreground); }
+
+.nav a::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:1px; background:var(--foreground); transition: width .3s ease; }
+
+.nav a:hover::after { width:100%; }
+
+.header-actions { display:flex; align-items:center; gap:1.5rem; }
+
+.search-container { position:relative; display:none; }   /* display toggled by media query in index.css */
+
+.search-input { background:var(--accent); border:1px solid var(--border); color:var(--foreground); padding:.75rem 1rem .75rem 2.5rem; border-radius:.5rem; width:280px; font-size:.9rem; transition: all .3s ease; }
+
+.search-input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 2px rgba(255,255,255,0.1); }
+
+.search-icon { position:absolute; left:.75rem; top:50%; transform: translateY(-50%); color: var(--muted-foreground); font-size:1rem; }
+
+.cart-btn { background:var(--accent); border:1px solid var(--border); color:var(--foreground); padding:.75rem 1.25rem; border-radius:.5rem; cursor:pointer; position:relative; transition: all .3s ease; font-weight:500; display:flex; align-items:center; gap:.5rem; }
+
+.cart-btn:hover { background:var(--muted); transform: translateY(-1px); }
+
+.cart-count { position:absolute; top:-8px; right:-8px; background:var(--error); color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:600; animation: pulse 2s infinite; }
