@@ -1,22 +1,206 @@
-.hero { padding: 8rem 0 6rem; text-align:center; background: radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, transparent 70%); margin-top:80px; }
+.hero {
+  padding: 8rem 0 6rem;
+  text-align: center;
+  margin-top: 80px;
+  position: relative;
+  overflow: hidden;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+}
 
-.hero h1 { font-size:4.5rem; font-weight:800; margin-bottom:1.5rem; line-height:1.1; letter-spacing:-0.03em; background: linear-gradient(135deg,#ffffff 0%,#888888 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+/* Added background image styling */
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
 
-.hero-subtitle { font-size:1.25rem; color:var(--muted-foreground); margin-bottom:3rem; max-width:700px; margin-left:auto; margin-right:auto; font-weight:400; line-height:1.6; }
+.hero-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+}
 
-.hero-buttons { display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; }
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, rgba(245, 235, 220, 0.9) 0%, rgba(245, 235, 220, 0.95) 100%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Added decorative pet icons */
+.hero-icons {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  font-size: 3rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+.hero-icon {
+  display: inline-block;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.hero-icon:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.hero h1 {
+  font-size: 4.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--foreground);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+  margin-bottom: 3rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+
+/* Added trust badges styling */
+.hero-badges {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 3rem;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 2rem;
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--foreground);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.badge-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
 
 /* buttons shared styling (kept here because it's used in hero buttons) */
-.btn { padding:1rem 2rem; border-radius:.5rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:.5rem; transition:all .3s ease; cursor:pointer; border:none; font-size:.95rem; position:relative; overflow:hidden; }
+.btn {
+  padding: 1rem 2rem;
+  border-radius: .5rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  transition: all .3s ease;
+  cursor: pointer;
+  border: none;
+  font-size: .95rem;
+  position: relative;
+  overflow: hidden;
+}
 
-.btn::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transition: left .5s ease; }
+.btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left .5s ease;
+}
 
-.btn:hover::before { left:100%; }
+.btn:hover::before {
+  left: 100%;
+}
 
-.btn-primary { background:var(--primary); color:var(--primary-foreground); }
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
 
-.btn-primary:hover { background:var(--muted-foreground); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255,255,255,0.1); }
+.btn-primary:hover {
+  background: var(--muted-foreground);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+}
 
-.btn-secondary { background:transparent; color:var(--foreground); border:1px solid var(--border); }
+.btn-secondary {
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
 
-.btn-secondary:hover { background:var(--accent); border-color:var(--foreground); transform: translateY(-2px); }
+.btn-secondary:hover {
+  background: var(--accent);
+  border-color: var(--foreground);
+  transform: translateY(-2px);
+}

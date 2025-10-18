@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Hero from '../sections/Hero'
 import Categories from '../sections/Categories'
 import Products from '../sections/Products'
+import Features from "../sections/Features"
 import CartModal from '../components/CartModal'
 import Notification from '../components/Notification'
 
@@ -13,6 +14,7 @@ export default function Home(){
       <Hero />
       <Categories />
       <Products />
+      <Features />
       <CartModal />
       <Notification />
     </>

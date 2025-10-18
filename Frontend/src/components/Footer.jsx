@@ -1,13 +1,12 @@
-import React from 'react'
-import '../style/Footer.css'
+import "../style/Footer.css"
 
-export default function Footer(){
+export default function Footer() {
   return (
     <footer className="footer">
       <div className="container">
         <div className="footer-content">
           <div className="footer-section">
-            <h3>เกี่ยวกับ ThaiShop</h3>
+            <h3>เกี่ยวกับ Pet Shop</h3>
             <ul>
               <li>เรื่องราวของเรา</li>
               <li>ทีมงาน</li>
@@ -30,7 +29,7 @@ export default function Footer(){
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2025 ThaiShop. สงวนลิขสิทธิ์</p>
+          <p>© 2025 Pet Shop. สงวนลิขสิทธิ์</p>
         </div>
       </div>
     </footer>
