@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { products } from "../data/products"
+import AddProductForm from "../components/AddProductForm";
 import "../style/Admin.css"
 
 export default function Admin() {
@@ -19,6 +20,8 @@ export default function Admin() {
   ])
 
   const [activeTab, setActiveTab] = useState("overview")
+
+  const [showForm, setShowForm] = useState(false);
 
   return (
     <div className="admin-container">
@@ -121,7 +124,10 @@ export default function Admin() {
         <div className="admin-content">
           <div className="products-header">
             <h2>จัดการสินค้า</h2>
-            <button className="btn btn-primary">+ เพิ่มสินค้าใหม่</button>
+            <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+              + เพิ่มสินค้าใหม่
+            </button>
+            {showForm && <AddProductForm onClose={() => setShowForm(false)} />}
           </div>
           <div className="products-table">
             <table>

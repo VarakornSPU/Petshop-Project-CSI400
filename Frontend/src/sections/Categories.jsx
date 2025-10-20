@@ -1,11 +1,17 @@
 "use client"
 import "../style/Categories.css"
+import { useNavigate } from "react-router-dom";
 
 export default function Categories() {
+  const navigate = useNavigate();
+
   function filterProducts(cat) {
-    // dispatch custom event for product filtering
-    window.dispatchEvent(new CustomEvent("filterProducts", { detail: cat }))
+    // ส่ง event (ถ้าจำเป็น)
+    window.dispatchEvent(new CustomEvent("filterProducts", { detail: cat }));
+    // เปลี่ยนหน้าไป /productslist พร้อมพารามิเตอร์ category
+    navigate(`/productslist?category=${cat}`);
   }
+
   return (
     <section className="categories" id="categories">
       <div className="container">
