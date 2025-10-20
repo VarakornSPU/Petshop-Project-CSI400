@@ -1,0 +1,51 @@
+.profile-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* เต็มหน้าจอ */
+    background-color: #f2f2f2;
+}
+
+.profile-card {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 320px;
+}
+
+.profile-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #ccc; /* placeholder สำหรับรูป */
+    margin: 0 auto 20px auto;
+    border: 2px solid #888;
+}
+
+.profile-name {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.profile-email {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.edit-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+}
+
+.edit-button:hover {
+    background-color: #0056b3;
+}
