@@ -1,3 +1,4 @@
+// frontend/src/components/Notification.jsx
 import React from 'react'
 import { useCart } from '../context/CartContext'
 import '../style/Notification.css'

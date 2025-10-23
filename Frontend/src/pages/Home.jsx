@@ -1,3 +1,4 @@
+// frontend/src/pages/Home.jsx
 import React, { useEffect, useState } from 'react'
 import Hero from '../sections/Hero'
 import Categories from '../sections/Categories'

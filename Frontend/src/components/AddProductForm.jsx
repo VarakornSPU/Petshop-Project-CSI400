@@ -1,4 +1,4 @@
-// components/AddProductForm.jsx
+// frontend/src/components/AddProductForm.jsx
 import { useState } from "react";
 import "../style/AddProductForm.css";
 

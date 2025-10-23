@@ -1,3 +1,4 @@
+// frontend/src/sections/Categories.jsx
 "use client"
 import "../style/Categories.css"
 import { useNavigate } from "react-router-dom";

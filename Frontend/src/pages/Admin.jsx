@@ -1,7 +1,9 @@
-import { useState } from "react"
-import { products } from "../data/products"
+// Frontend/src/pages/Admin.jsx
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { products } from "../data/products";
 import AddProductForm from "../components/AddProductForm";
-import "../style/Admin.css"
+import "../style/Admin.css";
 
 export default function Admin() {
   const [stats] = useState({
@@ -9,7 +11,7 @@ export default function Admin() {
     totalOrders: 156,
     totalRevenue: 245680,
     totalCustomers: 89,
-  })
+  });
 
   const [orders] = useState([
     { id: 1, customer: "สมชาย ใจดี", date: "2025-01-15", total: 2890, status: "completed" },
@@ -17,10 +19,9 @@ export default function Admin() {
     { id: 3, customer: "วิชัย มีสุข", date: "2025-01-14", total: 4280, status: "completed" },
     { id: 4, customer: "นภา ใจงาม", date: "2025-01-14", total: 890, status: "shipping" },
     { id: 5, customer: "ประยุทธ์ รักหมา", date: "2025-01-13", total: 3490, status: "completed" },
-  ])
+  ]);
 
-  const [activeTab, setActiveTab] = useState("overview")
-
+  const [activeTab, setActiveTab] = useState("overview");
   const [showForm, setShowForm] = useState(false);
 
   return (
@@ -49,6 +50,9 @@ export default function Admin() {
         >
           คำสั่งซื้อ
         </button>
+        <Link to="/admin/users" className="tab-btn">
+          จัดการผู้ใช้
+        </Link>
       </div>
 
       {activeTab === "overview" && (
@@ -81,6 +85,28 @@ export default function Admin() {
                 <h3>{stats.totalCustomers}</h3>
                 <p>ลูกค้า</p>
               </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="quick-actions">
+            <h2>การจัดการด่วน</h2>
+            <div className="action-cards">
+              <Link to="/admin/users" className="action-card">
+                <div className="action-icon">👥</div>
+                <h3>จัดการผู้ใช้</h3>
+                <p>เพิ่ม แก้ไข และจัดการบัญชีผู้ใช้</p>
+              </Link>
+              <button onClick={() => setActiveTab("products")} className="action-card">
+                <div className="action-icon">📦</div>
+                <h3>จัดการสินค้า</h3>
+                <p>เพิ่มหรือแก้ไขสินค้าในร้าน</p>
+              </button>
+              <button onClick={() => setActiveTab("orders")} className="action-card">
+                <div className="action-icon">📋</div>
+                <h3>ดูคำสั่งซื้อ</h3>
+                <p>ตรวจสอบและจัดการคำสั่งซื้อ</p>
+              </button>
             </div>
           </div>
 
@@ -211,5 +237,5 @@ export default function Admin() {
         </div>
       )}
     </div>
-  )
+  );
 }

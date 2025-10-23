@@ -1,34 +1,33 @@
+// Backend/server.js
 import express from "express";
 import cors from "cors";
-import pkg from "pg";
 import dotenv from "dotenv";
-// import fetch from 'node-fetch';
+import authRoutes from "./routes/auth.js";
+import addressRoutes from "./routes/address.js";
+import profileRoutes from "./routes/profile.js";
+import adminUsersRoutes from "./routes/adminUsers.js";
+import authResetRouter from './routes/authReset.js';
+import pool from './config/db.js';
 
 dotenv.config();
-const { Pool } = pkg;
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// เชื่อมต่อ Neon
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+// Test database connection
+pool.connect()
+  .then(() => console.log('✅ Connected to NeonDB successfully'))
+  .catch(err => console.error('❌ Database connection error:', err));
 
-// async function fetchDataOnStart() {
-//   try {
-//     const response = await fetch('https://api.example.com/data');
-//     const data = await response.json();
-//     console.log('Data fetched on start:', data);
-//   } catch (error) {
-//     console.error('Fetch error:', error);
-//   }
-// }
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/addresses", addressRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/admin/users", adminUsersRoutes);
+app.use('/auth', authResetRouter);
 
-// fetchDataOnStart();
-
+// Product routes
 app.get("/api/products", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM products");
@@ -39,12 +38,6 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
-app.post("/test", (req, res) => {
-  console.log("Test route hit");
-  res.send("Working!");
-});
-
-// เพิ่มสินค้าใหม่
 app.post("/api/products", async (req, res) => {
   const { name, description, category, price, stock, images } = req.body;
 
@@ -65,7 +58,6 @@ app.post("/api/products", async (req, res) => {
   }
 });
 
-// แก้ไขสินค้า
 app.put("/api/products/:id", async (req, res) => {
   const { id } = req.params;
   const { name, description, category, price, stock, images } = req.body;
@@ -81,7 +73,6 @@ app.put("/api/products/:id", async (req, res) => {
   }
 });
 
-// ลบสินค้า
 app.delete("/api/products/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -105,5 +96,10 @@ app.get("/api/products/:id", async (req, res) => {
   }
 });
 
+// Health check
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

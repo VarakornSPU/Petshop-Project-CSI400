@@ -1,3 +1,4 @@
+/* Frontend/src/pages/Products.jsx */
 .products { padding:6rem 0; }
 
 .products-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:3rem; flex-wrap:wrap; gap:2rem; }

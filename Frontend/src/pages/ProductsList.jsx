@@ -1,3 +1,4 @@
+// frontend/src/pages/ProductsList.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { products as productsData } from "../data/products";

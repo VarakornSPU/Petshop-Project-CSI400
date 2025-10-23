@@ -1,3 +1,4 @@
+// frontend/src/sections/Products.jsx
 import React, { useEffect, useState } from "react";
 import { products as productsData } from "../data/products";
 import { useCart } from "../context/CartContext";

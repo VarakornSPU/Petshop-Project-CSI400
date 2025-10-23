@@ -1,3 +1,4 @@
+// frontend/src/sections/Hero.jsx
 import "../style/Hero.css"
 
 export default function Hero() {

@@ -1,3 +1,4 @@
+// frontend/src/components/Footer.jsx
 import "../style/Footer.css"
 
 export default function Footer() {

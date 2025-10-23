@@ -1,3 +1,4 @@
+// frontend/src/sections/Features.jsx
 import "../style/Features.css"
 
 export default function Features() {
