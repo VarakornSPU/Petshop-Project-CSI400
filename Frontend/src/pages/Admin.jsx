@@ -1,4 +1,3 @@
-// Frontend/src/pages/Admin.jsx
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { products } from "../data/products";
@@ -24,30 +23,68 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showForm, setShowForm] = useState(false);
   const [productsList, setProductsList] = useState(products);
+  const [editingProduct, setEditingProduct] = useState(null);
 
-  // เพิ่ม function นี้
+  // ✅ Popup ลบสินค้า
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
+
+  // ✅ เพิ่มสินค้าใหม่
   function handleAddProduct(formData) {
-    console.log("ข้อมูลสินค้าใหม่:", formData);
-    
-    // สร้างสินค้าใหม่
     const newProduct = {
       id: productsList.length + 1,
-      name: formData.get('name'),
-      description: formData.get('description'),
-      category: formData.get('category'),
-      price: parseFloat(formData.get('price')),
-      stock: parseInt(formData.get('stock')),
+      name: formData.get("name"),
+      description: formData.get("description"),
+      category: formData.get("category"),
+      price: parseFloat(formData.get("price")),
+      stock: parseInt(formData.get("stock")),
       rating: 5.0,
-      icon: "📦", // placeholder icon
+      icon: "📦",
     };
-    
-    // เพิ่มเข้า state
     setProductsList([...productsList, newProduct]);
-    
-    // TODO: ส่งข้อมูลไป backend
-    // await axios.post('/api/products', formData);
-    
     setShowForm(false);
+  }
+
+  // ✅ แก้ไขสินค้า
+  function handleEditProduct(product) {
+    setEditingProduct(product);
+    setShowForm(true);
+  }
+
+  function handleUpdateProduct(formData) {
+    const updatedProduct = {
+      ...editingProduct,
+      name: formData.get("name"),
+      description: formData.get("description"),
+      category: formData.get("category"),
+      price: parseFloat(formData.get("price")),
+      stock: parseInt(formData.get("stock")),
+    };
+
+    setProductsList((prev) =>
+      prev.map((p) => (p.id === editingProduct.id ? updatedProduct : p))
+    );
+    setEditingProduct(null);
+    setShowForm(false);
+  }
+
+  // ✅ Popup ลบสินค้า
+  function confirmDeleteProduct(product) {
+    setProductToDelete(product);
+    setShowDeleteModal(true);
+  }
+
+  function handleDeleteConfirmed() {
+    if (productToDelete) {
+      setProductsList((prev) => prev.filter((p) => p.id !== productToDelete.id));
+      setShowDeleteModal(false);
+      setProductToDelete(null);
+    }
+  }
+
+  function handleCancelDelete() {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
   }
 
   return (
@@ -57,6 +94,7 @@ export default function Admin() {
         <p>จัดการร้านค้าสัตว์เลี้ยงของคุณ</p>
       </div>
 
+      {/* ---------------- Tabs ---------------- */}
       <div className="admin-tabs">
         <button
           className={activeTab === "overview" ? "tab-btn active" : "tab-btn"}
@@ -81,6 +119,7 @@ export default function Admin() {
         </Link>
       </div>
 
+      {/* ---------------- ภาพรวม ---------------- */}
       {activeTab === "overview" && (
         <div className="admin-content">
           <div className="stats-grid">
@@ -135,57 +174,36 @@ export default function Admin() {
               </button>
             </div>
           </div>
-
-          <div className="recent-orders">
-            <h2>คำสั่งซื้อล่าสุด</h2>
-            <div className="orders-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>รหัส</th>
-                    <th>ลูกค้า</th>
-                    <th>วันที่</th>
-                    <th>ยอดรวม</th>
-                    <th>สถานะ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.slice(0, 5).map((order) => (
-                    <tr key={order.id}>
-                      <td>#{order.id}</td>
-                      <td>{order.customer}</td>
-                      <td>{order.date}</td>
-                      <td>฿{order.total.toLocaleString()}</td>
-                      <td>
-                        <span className={`status-badge ${order.status}`}>
-                          {order.status === "completed" && "สำเร็จ"}
-                          {order.status === "pending" && "รอดำเนินการ"}
-                          {order.status === "shipping" && "กำลังจัดส่ง"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
       )}
 
+      {/* ---------------- สินค้า ---------------- */}
       {activeTab === "products" && (
         <div className="admin-content">
           <div className="products-header">
             <h2>จัดการสินค้า</h2>
-            <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setEditingProduct(null);
+                setShowForm(true);
+              }}
+            >
               + เพิ่มสินค้าใหม่
             </button>
-            {showForm && (
-              <AddProductForm 
-                onSubmit={handleAddProduct}
-                onClose={() => setShowForm(false)} 
-              />
-            )}
           </div>
+
+          {showForm && (
+            <AddProductForm
+              onSubmit={editingProduct ? handleUpdateProduct : handleAddProduct}
+              onClose={() => {
+                setShowForm(false);
+                setEditingProduct(null);
+              }}
+              initialData={editingProduct}
+            />
+          )}
+
           <div className="products-table">
             <table>
               <thead>
@@ -201,9 +219,7 @@ export default function Admin() {
               <tbody>
                 {productsList.map((product) => (
                   <tr key={product.id}>
-                    <td>
-                      <div className="product-image-cell">{product.icon}</div>
-                    </td>
+                    <td><div className="product-image-cell">{product.icon}</div></td>
                     <td>{product.name}</td>
                     <td>
                       <span className="category-badge">
@@ -216,8 +232,12 @@ export default function Admin() {
                     <td>⭐ {product.rating}</td>
                     <td>
                       <div className="action-buttons">
-                        <button className="btn-edit">แก้ไข</button>
-                        <button className="btn-delete">ลบ</button>
+                        <button className="btn-edit" onClick={() => handleEditProduct(product)}>
+                          แก้ไข
+                        </button>
+                        <button className="btn-delete" onClick={() => confirmDeleteProduct(product)}>
+                          ลบ
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -225,9 +245,30 @@ export default function Admin() {
               </tbody>
             </table>
           </div>
+
+          {/* ✅ Popup ยืนยันการลบ */}
+          {showDeleteModal && (
+            <div className="delete-modal-overlay">
+              <div className="delete-modal">
+                <h3>🗑️ ยืนยันการลบสินค้า</h3>
+                <p>
+                  คุณต้องการลบ <b>{productToDelete?.name}</b> ออกจากระบบหรือไม่?
+                </p>
+                <div className="delete-modal-actions">
+                  <button className="btn-confirm" onClick={handleDeleteConfirmed}>
+                    ยืนยันการลบ
+                  </button>
+                  <button className="btn-cancel" onClick={handleCancelDelete}>
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
+      {/* ---------------- คำสั่งซื้อ ---------------- */}
       {activeTab === "orders" && (
         <div className="admin-content">
           <h2>คำสั่งซื้อทั้งหมด</h2>

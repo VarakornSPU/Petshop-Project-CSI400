@@ -1,60 +1,58 @@
 import { useState, useEffect } from "react";
 import "../style/AddProductForm.css";
 
-export default function AddProductForm({ 
-  onClose, 
-  onSubmit, 
-  initialData = null 
-}) {
-  console.log("Received onSubmit in AddProductForm:", onSubmit);
-  console.log("Component stack trace:");
-  console.trace();
+export default function AddProductForm({ onClose, onSubmit, initialData = null }) {
   const [form, setForm] = useState({
     name: initialData?.name || "",
     description: initialData?.description || "",
     category: initialData?.category || "food",
     price: initialData?.price || "",
     stock: initialData?.stock || "",
-    images: [],
   });
 
-  const [previews, setPreviews] = useState([]);
+  // ✅ รูปภาพสูงสุด 5 รูป (เก็บไฟล์จริง)
+  const [images, setImages] = useState([null, null, null, null, null]);
 
+  // ✅ อัปเดตค่าเมื่อแก้ไขสินค้า
   useEffect(() => {
-    if (!form.images || form.images.length === 0) {
-      setPreviews([]);
-      return;
+    if (initialData) {
+      setForm({
+        name: initialData.name || "",
+        description: initialData.description || "",
+        category: initialData.category || "food",
+        price: initialData.price || "",
+        stock: initialData.stock || "",
+      });
+      setImages([null, null, null, null, null]);
     }
+  }, [initialData]);
 
-    const objectUrls = Array.from(form.images).map((file) =>
-      URL.createObjectURL(file)
-    );
-    setPreviews(objectUrls);
-
-    return () => {
-      objectUrls.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [form.images]);
-
+  // ✅ เปลี่ยนข้อมูลในฟอร์ม
   function handleChange(e) {
-    const { name, value, files } = e.target;
-    if (name === "images") {
-      // แปลง FileList เป็น Array
-      setForm({ ...form, images: Array.from(files) });
-    } else {
-      setForm({ ...form, [name]: value });
-    }
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
   }
 
+  // ✅ เมื่อเลือกรูปในแต่ละช่อง
+  function handleImageChange(e, index) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const newImages = [...images];
+    newImages[index] = file;
+    setImages(newImages);
+  }
+
+  // ✅ ลบรูปออกจากช่อง
+  function handleRemoveImage(index) {
+    const newImages = [...images];
+    newImages[index] = null;
+    setImages(newImages);
+  }
+
+  // ✅ ส่งข้อมูลฟอร์ม
   function handleSubmit(e) {
     e.preventDefault();
-
-    if (!onSubmit) {
-      console.error("onSubmit is undefined! This component was called without onSubmit prop");
-      console.trace();
-      return;
-    }
-
     const formData = new FormData();
     formData.append("name", form.name);
     formData.append("description", form.description);
@@ -62,20 +60,24 @@ export default function AddProductForm({
     formData.append("price", form.price);
     formData.append("stock", form.stock);
 
-    // เช็คว่า images เป็น array ก่อน
-    if (Array.isArray(form.images)) {
-      form.images.forEach((file) => {
-        formData.append("images", file);
-      });
-    }
+    images.forEach((img) => {
+      if (img) formData.append("images", img);
+    });
 
-    console.log("About to call onSubmit with:", formData);
-    console.log("onSubmit type:", typeof onSubmit);
-    
     if (typeof onSubmit === "function") {
       onSubmit(formData);
-    } else {
-      console.error("onSubmit is not a function! Received:", onSubmit);
+    }
+
+    // รีเซ็ตฟอร์มเมื่อเพิ่มสินค้าใหม่
+    if (!initialData) {
+      setForm({
+        name: "",
+        description: "",
+        category: "food",
+        price: "",
+        stock: "",
+      });
+      setImages([null, null, null, null, null]);
     }
   }
 
@@ -83,6 +85,7 @@ export default function AddProductForm({
     <div className="modal-overlay">
       <div className="modal">
         <h2>{initialData ? "แก้ไขสินค้า" : "เพิ่มสินค้าใหม่"}</h2>
+
         <form onSubmit={handleSubmit}>
           <input
             type="text"
@@ -92,6 +95,7 @@ export default function AddProductForm({
             onChange={handleChange}
             required
           />
+
           <textarea
             name="description"
             placeholder="รายละเอียดสินค้า"
@@ -99,6 +103,7 @@ export default function AddProductForm({
             onChange={handleChange}
             required
           />
+
           <input
             type="number"
             name="price"
@@ -107,6 +112,7 @@ export default function AddProductForm({
             onChange={handleChange}
             required
           />
+
           <input
             type="number"
             name="stock"
@@ -115,6 +121,7 @@ export default function AddProductForm({
             onChange={handleChange}
             required
           />
+
           <select
             name="category"
             value={form.category}
@@ -126,31 +133,47 @@ export default function AddProductForm({
             <option value="accessories">อุปกรณ์</option>
           </select>
 
-          <input
-            type="file"
-            name="images"
-            onChange={handleChange}
-            multiple
-            accept="image/*"
-          />
+          {/* ✅ ส่วนอัปโหลดรูป 5 ช่อง */}
+          <div className="image-upload-section">
+            {images.map((img, i) => (
+              <label key={i} className="image-upload-box">
+                {img ? (
+                  <>
+                    <img
+                      src={URL.createObjectURL(img)}
+                      alt={`preview-${i}`}
+                      className="image-preview"
+                    />
+                    <button
+                      type="button"
+                      className="remove-image-btn"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleRemoveImage(i);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </>
+                ) : (
+                  <div className="upload-placeholder">➕</div>
+                )}
 
-          <div
-            className="image-preview-container"
-            style={{ display: "flex", gap: 10, marginTop: 10, overflowX: "auto" }}
-          >
-            {previews.map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt={`preview-${i}`}
-                style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 5 }}
-              />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageChange(e, i)}
+                  style={{ display: "none" }}
+                />
+              </label>
             ))}
           </div>
 
           <div className="form-actions">
-            <button type="submit">บันทึก</button>
-            <button type="button" onClick={onClose}>
+            <button type="submit" className="btn-save">
+              {initialData ? "บันทึกการแก้ไข" : "เพิ่มสินค้าใหม่"}
+            </button>
+            <button type="button" className="btn-cancel" onClick={onClose}>
               ยกเลิก
             </button>
           </div>
