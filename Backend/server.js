@@ -2,11 +2,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from 'path';
 import authRoutes from "./routes/auth.js";
 import addressRoutes from "./routes/address.js";
 import profileRoutes from "./routes/profile.js";
 import adminUsersRoutes from "./routes/adminUsers.js";
 import authResetRouter from './routes/authReset.js';
+import adminProductRoutes from './routes/adminProducts.js';
 import pool from './config/db.js';
 
 dotenv.config();
@@ -26,6 +28,9 @@ app.use("/api/addresses", addressRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/admin/users", adminUsersRoutes);
 app.use('/auth', authResetRouter);
+app.use("/api/admin/products", adminProductRoutes);
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Product routes
 app.get("/api/products", async (req, res) => {

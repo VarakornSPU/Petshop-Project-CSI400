@@ -23,6 +23,32 @@ export default function Admin() {
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showForm, setShowForm] = useState(false);
+  const [productsList, setProductsList] = useState(products);
+
+  // เพิ่ม function นี้
+  function handleAddProduct(formData) {
+    console.log("ข้อมูลสินค้าใหม่:", formData);
+    
+    // สร้างสินค้าใหม่
+    const newProduct = {
+      id: productsList.length + 1,
+      name: formData.get('name'),
+      description: formData.get('description'),
+      category: formData.get('category'),
+      price: parseFloat(formData.get('price')),
+      stock: parseInt(formData.get('stock')),
+      rating: 5.0,
+      icon: "📦", // placeholder icon
+    };
+    
+    // เพิ่มเข้า state
+    setProductsList([...productsList, newProduct]);
+    
+    // TODO: ส่งข้อมูลไป backend
+    // await axios.post('/api/products', formData);
+    
+    setShowForm(false);
+  }
 
   return (
     <div className="admin-container">
@@ -153,7 +179,12 @@ export default function Admin() {
             <button className="btn btn-primary" onClick={() => setShowForm(true)}>
               + เพิ่มสินค้าใหม่
             </button>
-            {showForm && <AddProductForm onClose={() => setShowForm(false)} />}
+            {showForm && (
+              <AddProductForm 
+                onSubmit={handleAddProduct}
+                onClose={() => setShowForm(false)} 
+              />
+            )}
           </div>
           <div className="products-table">
             <table>
@@ -168,7 +199,7 @@ export default function Admin() {
                 </tr>
               </thead>
               <tbody>
-                {products.map((product) => (
+                {productsList.map((product) => (
                   <tr key={product.id}>
                     <td>
                       <div className="product-image-cell">{product.icon}</div>
