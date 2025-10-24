@@ -55,7 +55,6 @@ export default function Header() {
                 <div className="logo-icon">
                   <span className="logo-emoji">🐾</span>
                 </div>
-                <div className="logo-pulse"></div>
               </div>
               <div className="logo-text">
                 <span className="logo-title">Pet Shop</span>

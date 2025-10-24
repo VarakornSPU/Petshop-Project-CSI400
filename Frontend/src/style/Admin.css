@@ -5,7 +5,8 @@
 .admin-users-page {
   min-height: 100vh;
   padding: 6rem 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Replaced purple gradient with warm coral pet shop theme */
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
 }
 
 .admin-header,
@@ -91,9 +92,10 @@
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Updated to coral gradient */
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
 }
 
 /* ==================== Content Area ==================== */
@@ -219,6 +221,7 @@
 .btn-primary,
 .btn-create {
   padding: 0.875rem 1.5rem;
+  /* Kept green for success actions */
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border: none;
@@ -235,7 +238,6 @@
 .btn-primary:hover,
 .btn-create:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
 }
 
 .btn-create svg {
@@ -276,13 +278,14 @@
 }
 
 .btn-view {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Updated to coral gradient */
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
   color: white;
 }
 
 .btn-view:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
 }
 
 /* Icon Buttons */
@@ -436,7 +439,8 @@ table {
 }
 
 thead {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Updated to coral gradient */
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
 }
 
 th {
@@ -505,8 +509,9 @@ td {
 }
 
 .category-badge {
-  background: linear-gradient(135deg, #c4b5fd 0%, #8b5cf6 100%);
-  color: #5b21b6;
+  /* Updated to soft blue pet shop theme */
+  background: linear-gradient(135deg, #4ecdc4 0%, #45b7d1 100%);
+  color: #0d5c63;
 }
 
 .role-badge.admin {
@@ -515,7 +520,8 @@ td {
 }
 
 .role-badge.customer {
-  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  /* Updated to coral gradient */
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
   color: white;
 }
 
@@ -549,7 +555,8 @@ td {
 
 .btn-page {
   padding: 0.625rem 1.25rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Updated to coral gradient */
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
   color: white;
   border: none;
   border-radius: 0.75rem;
@@ -560,7 +567,7 @@ td {
 
 .btn-page:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
 }
 
 .btn-page:disabled {
@@ -677,9 +684,10 @@ td {
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
+  /* Updated focus color to coral */
+  border-color: #ff8e53;
   background: white;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 4px rgba(255, 142, 83, 0.1);
 }
 
 .form-group input:disabled {
@@ -822,89 +830,5 @@ td {
 
   .action-buttons {
     justify-content: center;
-  }
-}
-
-.delete-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  animation: fadeIn 0.2s ease-in;
-}
-
-.delete-modal {
-  background: #fff;
-  border-radius: 10px;
-  padding: 25px 30px;
-  width: 360px;
-  max-width: 90%;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  animation: popUp 0.25s ease-out;
-}
-
-.delete-modal h3 {
-  color: #d32f2f;
-  margin-bottom: 10px;
-}
-
-.delete-modal p {
-  margin-bottom: 20px;
-  color: #333;
-  font-size: 15px;
-}
-
-.delete-modal-actions {
-  display: flex;
-  justify-content: space-around;
-  gap: 10px;
-}
-
-.delete-modal .btn-confirm {
-  background-color: #d32f2f;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-.delete-modal .btn-confirm:hover {
-  background-color: #b71c1c;
-}
-
-.delete-modal .btn-cancel {
-  background-color: #ccc;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.delete-modal .btn-cancel:hover {
-  background-color: #bbb;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes popUp {
-  from {
-    opacity: 0;
-    transform: scale(0.85);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
   }
 }

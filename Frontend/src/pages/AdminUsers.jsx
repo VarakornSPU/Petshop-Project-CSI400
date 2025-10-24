@@ -123,8 +123,8 @@ export default function AdminUsers() {
         {/* Header */}
         <div className="page-header">
           <div>
-            <h1>จัดการผู้ใช้</h1>
-            <p>จัดการบัญชีผู้ใช้ในระบบ</p>
+            <h1 className='titleuser'>จัดการผู้ใช้</h1>
+            <p className='manageacc'>จัดการบัญชีผู้ใช้ในระบบ</p>
           </div>
           <button onClick={handleCreate} className="btn-create">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

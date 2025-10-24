@@ -3,7 +3,7 @@
 .address-management-page {
   min-height: 100vh;
 
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
   padding: 10rem 1rem;
 }
 
@@ -29,12 +29,10 @@
 .page-header h1 {
   font-size: 2rem;
   font-weight: bold;
-  color: white;
   margin: 0;
 }
 
 .page-header p {
-  color: rgba(255, 255, 255, 0.8);
   margin: 0.5rem 0 0;
 }
 
@@ -44,7 +42,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #667eea;
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
   color: #ffffff;
   border: none;
   border-radius: 0.5rem;
@@ -65,7 +63,7 @@
 
 .btn-primary {
   padding: 0.75rem 1.5rem;
-  background: #667eea;
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -75,7 +73,7 @@
 }
 
 .btn-primary:hover {
-  background: #5568d3;
+  background: linear-gradient(135deg, #97532f 0%, #ff6b6b 100%);
 }
 
 .btn-secondary {
@@ -114,9 +112,6 @@
   height: 20px;
 }
 
-.btn-delete {
-  color: #ef4444;
-}
 
 .btn-delete:hover {
   background: #fee2e2;
@@ -378,7 +373,7 @@
 .btn-save {
   flex: 1;
   padding: 0.75rem;
-  background: #667eea;
+  background: linear-gradient(135deg, #086345 0%, #059669 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -388,7 +383,7 @@
 }
 
 .btn-save:hover {
-  background: #5568d3;
+  background: linear-gradient(135deg, #086345 0%, #059669 100%);
 }
 
 .btn-cancel {
