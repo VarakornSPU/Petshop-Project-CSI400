@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { products } from "../data/products";
 import AddProductForm from "../components/AddProductForm";
 import "../style/Admin.css";
 
+const API_URL = "http://localhost:3001/api/admin/products";
+
 export default function Admin() {
-  const [stats] = useState({
-    totalProducts: products.length,
+  const [productsList, setProductsList] = useState([]);
+  const [stats, setStats] = useState({
+    totalProducts: 0,
     totalOrders: 156,
     totalRevenue: 245680,
     totalCustomers: 89,
@@ -22,27 +24,62 @@ export default function Admin() {
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showForm, setShowForm] = useState(false);
-  const [productsList, setProductsList] = useState(products);
   const [editingProduct, setEditingProduct] = useState(null);
-
-  // ✅ Popup ลบสินค้า
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // ✅ โหลดข้อมูลจาก backend
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  async function fetchProducts() {
+    setLoading(true);
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error("ไม่สามารถโหลดข้อมูลได้");
+      
+      const data = await res.json();
+      setProductsList(data);
+      setStats(prev => ({
+        ...prev,
+        totalProducts: data.length
+      }));
+    } catch (err) {
+      console.error("❌ โหลดข้อมูลสินค้าไม่สำเร็จ:", err);
+      alert("ไม่สามารถโหลดข้อมูลสินค้าได้");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // ✅ เพิ่มสินค้าใหม่
-  function handleAddProduct(formData) {
-    const newProduct = {
-      id: productsList.length + 1,
-      name: formData.get("name"),
-      description: formData.get("description"),
-      category: formData.get("category"),
-      price: parseFloat(formData.get("price")),
-      stock: parseInt(formData.get("stock")),
-      rating: 5.0,
-      icon: "📦",
-    };
-    setProductsList([...productsList, newProduct]);
-    setShowForm(false);
+  async function handleAddProduct(formData) {
+    setLoading(true);
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.message || "เพิ่มสินค้าไม่สำเร็จ");
+
+      setProductsList(prev => [...prev, result.product]);
+      setStats(prev => ({
+        ...prev,
+        totalProducts: prev.totalProducts + 1
+      }));
+      setShowForm(false);
+      alert("✅ เพิ่มสินค้าสำเร็จ!");
+    } catch (err) {
+      console.error("❌ เกิดข้อผิดพลาด:", err);
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   // ✅ แก้ไขสินค้า
@@ -51,34 +88,64 @@ export default function Admin() {
     setShowForm(true);
   }
 
-  function handleUpdateProduct(formData) {
-    const updatedProduct = {
-      ...editingProduct,
-      name: formData.get("name"),
-      description: formData.get("description"),
-      category: formData.get("category"),
-      price: parseFloat(formData.get("price")),
-      stock: parseInt(formData.get("stock")),
-    };
+  async function handleUpdateProduct(formData) {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/${editingProduct.id}`, {
+        method: "PUT",
+        body: formData,
+      });
 
-    setProductsList((prev) =>
-      prev.map((p) => (p.id === editingProduct.id ? updatedProduct : p))
-    );
-    setEditingProduct(null);
-    setShowForm(false);
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.message || "แก้ไขสินค้าไม่สำเร็จ");
+
+      setProductsList(prev =>
+        prev.map(p => (p.id === editingProduct.id ? result.product : p))
+      );
+      setEditingProduct(null);
+      setShowForm(false);
+      alert("✅ แก้ไขสินค้าสำเร็จ!");
+    } catch (err) {
+      console.error("❌ เกิดข้อผิดพลาด:", err);
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  // ✅ Popup ลบสินค้า
+  // ✅ ลบสินค้า
   function confirmDeleteProduct(product) {
     setProductToDelete(product);
     setShowDeleteModal(true);
   }
 
-  function handleDeleteConfirmed() {
-    if (productToDelete) {
-      setProductsList((prev) => prev.filter((p) => p.id !== productToDelete.id));
+  async function handleDeleteConfirmed() {
+    if (!productToDelete) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/${productToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.message || "ลบสินค้าไม่สำเร็จ");
+
+      setProductsList(prev => prev.filter(p => p.id !== productToDelete.id));
+      setStats(prev => ({
+        ...prev,
+        totalProducts: prev.totalProducts - 1
+      }));
       setShowDeleteModal(false);
       setProductToDelete(null);
+      alert("✅ ลบสินค้าสำเร็จ!");
+    } catch (err) {
+      console.error("❌ เกิดข้อผิดพลาด:", err);
+      alert(err.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -93,6 +160,23 @@ export default function Admin() {
         <h1>🐾 Admin Dashboard</h1>
         <p>จัดการร้านค้าสัตว์เลี้ยงของคุณ</p>
       </div>
+
+      {/* Loading Indicator */}
+      {loading && (
+        <div style={{ 
+          position: "fixed", 
+          top: "50%", 
+          left: "50%", 
+          transform: "translate(-50%, -50%)",
+          background: "rgba(0,0,0,0.8)",
+          color: "white",
+          padding: "20px 40px",
+          borderRadius: "10px",
+          zIndex: 9999
+        }}>
+          กำลังโหลด...
+        </div>
+      )}
 
       {/* ---------------- Tabs ---------------- */}
       <div className="admin-tabs">
@@ -205,65 +289,91 @@ export default function Admin() {
           )}
 
           <div className="products-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>รูปภาพ</th>
-                  <th>ชื่อสินค้า</th>
-                  <th>หมวดหมู่</th>
-                  <th>ราคา</th>
-                  <th>คะแนน</th>
-                  <th>การจัดการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {productsList.map((product) => (
-                  <tr key={product.id}>
-                    <td><div className="product-image-cell">{product.icon}</div></td>
-                    <td>{product.name}</td>
-                    <td>
-                      <span className="category-badge">
-                        {product.category === "food" && "อาหาร"}
-                        {product.category === "toys" && "ของเล่น"}
-                        {product.category === "accessories" && "อุปกรณ์"}
-                      </span>
-                    </td>
-                    <td>฿{product.price.toLocaleString()}</td>
-                    <td>⭐ {product.rating}</td>
-                    <td>
-                      <div className="action-buttons">
-                        <button className="btn-edit" onClick={() => handleEditProduct(product)}>
-                          แก้ไข
-                        </button>
-                        <button className="btn-delete" onClick={() => confirmDeleteProduct(product)}>
-                          ลบ
-                        </button>
-                      </div>
-                    </td>
+            {productsList.length === 0 ? (
+              <p style={{ textAlign: "center", padding: "40px" }}>
+                ยังไม่มีสินค้าในระบบ
+              </p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>รูปภาพ</th>
+                    <th>ชื่อสินค้า</th>
+                    <th>หมวดหมู่</th>
+                    <th>ราคา</th>
+                    <th>คงเหลือ</th>
+                    <th>คะแนน</th>
+                    <th>การจัดการ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {productsList.map((product) => (
+                    <tr key={product.id}>
+                      <td>
+                        <div className="product-image-cell">
+                          {product.images && product.images.length > 0 ? (
+                            <img 
+                              src={`http://localhost:3001${product.images[0]}`} 
+                              alt={product.name}
+                              style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "5px" }}
+                            />
+                          ) : (
+                            "📦"
+                          )}
+                        </div>
+                      </td>
+                      <td>{product.name}</td>
+                      <td>
+                        <span className="category-badge">
+                          {product.category === "food" && "อาหาร"}
+                          {product.category === "toys" && "ของเล่น"}
+                          {product.category === "accessories" && "อุปกรณ์"}
+                          {product.category !== "food" && product.category !== "toys" && product.category !== "accessories" && product.category}
+                        </span>
+                      </td>
+                      <td>฿{product.price?.toLocaleString()}</td>
+                      <td>{product.stock}</td>
+                      <td>⭐ {product.rating || 0}</td>
+                      <td>
+                        <div className="action-buttons">
+                          <button className="btn-edit" onClick={() => handleEditProduct(product)}>
+                            แก้ไข
+                          </button>
+                          <button className="btn-delete" onClick={() => confirmDeleteProduct(product)}>
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* ✅ Popup ยืนยันการลบ */}
           {showDeleteModal && (
             <div className="delete-modal-overlay">
-              <div className="delete-modal">
+            <div className="delete-modal">
+              <div className="delete-modal-header">
                 <h3>🗑️ ยืนยันการลบสินค้า</h3>
-                <p>
-                  คุณต้องการลบ <b>{productToDelete?.name}</b> ออกจากระบบหรือไม่?
-                </p>
-                <div className="delete-modal-actions">
-                  <button className="btn-confirm" onClick={handleDeleteConfirmed}>
-                    ยืนยันการลบ
-                  </button>
-                  <button className="btn-cancel" onClick={handleCancelDelete}>
-                    ยกเลิก
-                  </button>
-                </div>
+                <button className="btn-close" onClick={handleCancelDelete}>
+                  &times;
+                </button>
+              </div>
+              <p className="delete-modal-text">
+                คุณต้องการลบ <b>{productToDelete?.name}</b> ออกจากระบบหรือไม่?
+              </p>
+              <div className="delete-modal-actions">
+                <button className="btn-confirm" onClick={handleDeleteConfirmed}>
+                  ยืนยันการลบ
+                </button>
+                <button className="btn-cancel" onClick={handleCancelDelete}>
+                  ยกเลิก
+                </button>
               </div>
             </div>
+          </div>
           )}
         </div>
       )}

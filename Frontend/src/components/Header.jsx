@@ -156,7 +156,8 @@ export default function Header() {
                         โปรไฟล์
                       </Link>
                       
-                      <RoleBasedComponent allowedRoles={['customer', 'admin']}>
+                      {/* <RoleBasedComponent allowedRoles={['customer', 'admin']}> */}
+                      <RoleBasedComponent allowedRoles={['customer']}>
                         <Link 
                           to="/addresses" 
                           className="dropdown-item" 

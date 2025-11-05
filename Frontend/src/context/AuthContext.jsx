@@ -1,4 +1,4 @@
-// frontend/src/context/AuthContext.jsx
+// frontend/src/context/AuthContext.jsx (FIXED)
 import { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { authAPI } from '../utils/api';
 
@@ -63,6 +63,7 @@ export const AuthProvider = ({ children }) => {
       if (token && savedUser) {
         try {
           const response = await authAPI.verifyToken();
+          
           dispatch({
             type: 'LOGIN_SUCCESS',
             payload: {
@@ -70,12 +71,16 @@ export const AuthProvider = ({ children }) => {
               token: token,
             },
           });
+          console.log('User data:', response.user);
+          console.log('✅ Auth verified successfully');
         } catch (error) {
+          console.error('❌ Token verification failed:', error);
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
           dispatch({ type: 'LOGOUT' });
         }
       } else {
+        console.log('⚠️ No token found, user not authenticated');
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
@@ -88,19 +93,26 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login(credentials);
 
-      localStorage.setItem('authToken', response.token);
+      // console.log('🔐 Login Response:', response);
+
+      // ✅ เก็บ Token และ User
+      const token = response.accessToken || response.token;
+      
+      localStorage.setItem('authToken', token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: {
           user: response.user,
-          token: response.token,
+          token: token,
+          
         },
-      });
+      });console.log('User data:', response.user);
 
       return { success: true, message: response.message };
     } catch (error) {
+      console.error('❌ Login error:', error);
       const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
       dispatch({
         type: 'LOGIN_FAILURE',
@@ -115,19 +127,25 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.register(userData);
 
-      localStorage.setItem('authToken', response.token);
+      console.log('📝 Register Response:', response);
+
+      // ✅ เก็บ Token และ User
+      const token = response.accessToken || response.token;
+      
+      localStorage.setItem('authToken', token);
       localStorage.setItem('user', JSON.stringify(response.user));
 
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: {
           user: response.user,
-          token: response.token,
+          token: token,
         },
       });
 
       return { success: true, message: response.message };
     } catch (error) {
+      console.error('❌ Register error:', error);
       const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก';
       dispatch({
         type: 'LOGIN_FAILURE',
@@ -138,6 +156,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
+    console.log('🚪 Logging out...');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     dispatch({ type: 'LOGOUT' });
@@ -202,37 +221,6 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-// ===============================
-// ลืมรหัสผ่าน (ขอลิงก์รีเซ็ต)
-// ===============================
-const forgotPassword = async (email) => {
-  try {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, { email });
-    return { success: true, message: 'ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลแล้ว' };
-  } catch (err) {
-    console.error(err);
-    const msg = err.response?.data?.message || 'ไม่สามารถส่งอีเมลรีเซ็ตรหัสผ่านได้';
-    return { success: false, error: msg };
-  }
-};
-
-// ===============================
-// รีเซ็ตรหัสผ่าน (เมื่อคลิกลิงก์จากอีเมล)
-// ===============================
-const resetPassword = async (token, password) => {
-  try {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/reset-password`, {
-      token,
-      password,
-    });
-    return { success: true, message: 'รีเซ็ตรหัสผ่านสำเร็จ' };
-  } catch (err) {
-    console.error(err);
-    const msg = err.response?.data?.message || 'โทเค็นไม่ถูกต้องหรือหมดอายุ';
-    return { success: false, error: msg };
-  }
 };
 
 export default AuthContext;

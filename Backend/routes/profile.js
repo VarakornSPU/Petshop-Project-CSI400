@@ -20,10 +20,11 @@ router.get('/me', authenticateToken, async (req, res) => {
     }
 
     res.json({ user: result.rows[0] });
+    console.log('User data from DB:', result.rows[0]);
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูล' });
-  }
+  }onsole.log('User data from DB:', result.rows[0]);
 });
 
 // Update profile

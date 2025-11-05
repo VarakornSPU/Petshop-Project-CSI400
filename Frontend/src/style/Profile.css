@@ -1,142 +1,521 @@
-/* Frontend/src/style/Profile.css - Standalone Profile Page Style */
+/* Frontend/src/style/Profile.css */
+
+/* ========================================
+   PROFILE PAGE
+   ======================================== */
 
 .profile-page {
   min-height: 100vh;
+  background: #f7fafc;
   padding: 6rem 1rem 2rem;
-  /* Updated to coral gradient for pet shop theme */
-  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
 }
 
 .profile-container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
-/* ==================== Profile Header ==================== */
+/* ========================================
+   PROFILE HEADER
+   ======================================== */
+
 .profile-header {
-  background: white;
-  border-radius: 1.5rem;
-  padding: 2.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 2rem;
   display: flex;
   align-items: center;
   gap: 2rem;
-  animation: slideDown 0.5s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
 }
 
 .profile-avatar {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  /* Updated to coral gradient */
-  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
-  color: white;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.5rem;
-  font-weight: bold;
+  font-weight: 700;
+  color: #667eea;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
-  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-  border: 4px solid white;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.profile-header-info {
-  flex: 1;
 }
 
 .profile-header-info h1 {
-  margin: 0 0 0.5rem;
+  color: white;
   font-size: 2rem;
-  color: #1f2937;
-  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 
 .profile-role {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  /* Updated to coral gradient */
-  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
-  color: white;
-  border-radius: 2rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-top: 0.5rem;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
 }
 
-/* ==================== Alert Messages ==================== */
-.alert {
-  padding: 1rem 1.5rem;
-  border-radius: 1rem;
-  margin-bottom: 1.5rem;
+.profile-email {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+}
+
+/* ========================================
+   TABS
+   ======================================== */
+
+.profile-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 0.875rem 1.5rem;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  animation: slideIn 0.4s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.tab svg {
+  width: 20px;
+  height: 20px;
 }
 
-.alert svg {
-  width: 1.5rem;
-  height: 1.5rem;
+.tab:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* ========================================
+   PROFILE CARD
+   ======================================== */
+
+.profile-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.card-header h2 {
+  font-size: 1.5rem;
+  color: #2d3748;
+}
+
+.btn-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-edit svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-edit:hover {
+  background: #764ba2;
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   PROFILE INFO (READ MODE)
+   ======================================== */
+
+.profile-info {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-item label {
+  font-weight: 600;
+  color: #718096;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item p {
+  color: #2d3748;
+  font-size: 1rem;
+}
+
+/* ========================================
+   PROFILE FORM (EDIT MODE)
+   ======================================== */
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.875rem;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input:disabled {
+  background: #f7fafc;
+  cursor: not-allowed;
+}
+
+.form-group small {
+  color: #718096;
+  font-size: 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-save,
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-save {
+  background: #48bb78;
+  color: white;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #38a169;
+  transform: translateY(-2px);
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background: #e2e8f0;
+  color: #2d3748;
+}
+
+.btn-cancel:hover {
+  background: #cbd5e0;
+}
+
+/* ========================================
+   PASSWORD INPUT
+   ======================================== */
+
+.password-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input input {
+  flex: 1;
+  padding-right: 3rem;
+}
+
+.password-input button {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: transform 0.2s;
+}
+
+.password-input button:hover {
+  transform: scale(1.1);
+}
+
+/* ========================================
+   SECURITY INFO
+   ======================================== */
+
+.security-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.security-info .info-item {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f7fafc;
+  border-radius: 12px;
+}
+
+.security-info svg {
+  width: 40px;
+  height: 40px;
+  color: #667eea;
   flex-shrink: 0;
 }
 
-.alert-success {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  color: #065f46;
-  border: 2px solid #6ee7b7;
+.security-info h4 {
+  color: #2d3748;
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
 }
 
-.alert-error {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  color: #991b1b;
-  border: 2px solid #fca5a5;
+.security-info p {
+  color: #718096;
+  font-size: 0.875rem;
 }
 
-/* ==================== Profile Card ==================== */
-.profile-card {
+/* ========================================
+   ADDRESS SECTION
+   ======================================== */
+
+.address-section {
   background: white;
-  border-radius: 1.5rem;
+  border-radius: 16px;
   padding: 2rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  animation: fadeIn 0.6s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  color: #2d3748;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* ========================================
+   ADDRESSES GRID
+   ======================================== */
+
+.addresses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.address-card {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.address-card:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.address-card.default {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-color: #667eea;
+}
+
+.default-badge {
+  position: absolute;
+  top: -10px;
+  right: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.address-content h3 {
+  font-size: 1.125rem;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.phone {
+  color: #718096;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.address-text {
+  color: #4a5568;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin-bottom: 0.25rem;
+}
+
+.address-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-icon {
+  padding: 0.5rem;
+  background: #e2e8f0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon svg {
+  width: 16px;
+  height: 16px;
+  color: #4a5568;
+}
+
+.btn-icon:hover {
+  background: #cbd5e0;
+}
+
+.btn-icon.btn-delete {
+  background: #fff5f5;
+}
+
+.btn-icon.btn-delete svg {
+  color: #e53e3e;
+}
+
+.btn-icon.btn-delete:hover {
+  background: #fed7d7;
+}
+
+/* ========================================
+   MODAL
+   ======================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
 }
 
 @keyframes fadeIn {
@@ -148,257 +527,121 @@
   }
 }
 
-.card-header {
+.modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #f3f4f6;
 }
 
-.card-header h2 {
-  margin: 0;
+.modal-header h2 {
   font-size: 1.5rem;
-  color: #1f2937;
-  font-weight: 700;
+  color: #2d3748;
 }
 
-/* ==================== Buttons ==================== */
-.btn-edit,
-.btn-save,
-.btn-cancel {
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.75rem;
-  font-weight: 500;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-edit {
-  /* Updated to coral gradient */
-  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
-  color: white;
-}
-
-.btn-edit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-}
-
-.btn-edit svg {
-  width: 1.125rem;
-  height: 1.125rem;
-}
-
-.btn-save {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-}
-
-.btn-save:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-}
-
-.btn-save:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-cancel {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.btn-cancel:hover {
-  background: #e5e7eb;
-}
-
-/* ==================== Profile Info (Read-only) ==================== */
-.profile-info {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.info-item {
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-}
-
-.info-item label {
-  display: block;
-  font-size: 0.875rem;
-  color: #6b7280;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.info-item p {
-  margin: 0;
-  font-size: 1rem;
-  color: #1f2937;
-  font-weight: 500;
-}
-
-/* ==================== Profile Form ==================== */
-.profile-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.75rem;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  background: #f9fafb;
-}
-
-.form-group input:focus {
-  outline: none;
-  /* Updated focus color to coral */
-  border-color: #ff8e53;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(255, 142, 83, 0.1);
-}
-
-.form-group input:disabled {
-  background: #f3f4f6;
-  color: #9ca3af;
-  cursor: not-allowed;
-}
-
-.form-group small {
-  margin-top: 0.375rem;
-  font-size: 0.8rem;
-  color: #6b7280;
-}
-
-/* ==================== Password Input ==================== */
-.password-input {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-input input {
-  flex: 1;
-  padding-right: 3.5rem;
-}
-
-.password-input button {
-  position: absolute;
-  right: 0.75rem;
+.btn-close {
+  font-size: 2rem;
   background: none;
   border: none;
+  color: #718096;
   cursor: pointer;
-  font-size: 1.25rem;
-  padding: 0.5rem;
-  transition: transform 0.2s;
-  z-index: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.password-input button:hover {
-  transform: scale(1.1);
+.btn-close:hover {
+  background: #f7fafc;
+  color: #2d3748;
 }
 
-/* ==================== Form Actions ==================== */
-.form-actions {
+.modal-form {
+  padding: 2rem;
+}
+
+.modal-actions {
   display: flex;
   gap: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid #f3f4f6;
+  margin-top: 2rem;
 }
 
-.form-actions button {
+.modal-actions button {
   flex: 1;
 }
 
-/* ==================== Responsive Design ==================== */
-@media (max-width: 768px) {
-  .profile-page {
-    padding: 5rem 0.5rem 1rem;
-  }
+/* ========================================
+   EMPTY STATE
+   ======================================== */
 
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-state svg {
+  width: 80px;
+  height: 80px;
+  color: #cbd5e0;
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: #718096;
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
   .profile-header {
     flex-direction: column;
     text-align: center;
-    padding: 2rem;
   }
 
   .profile-header-info h1 {
     font-size: 1.5rem;
   }
 
-  .profile-avatar {
-    width: 80px;
-    height: 80px;
-    font-size: 2rem;
+  .profile-tabs {
+    flex-direction: column;
   }
 
   .form-row {
     grid-template-columns: 1fr;
   }
 
-  .profile-card {
-    padding: 1.5rem;
+  .addresses-grid {
+    grid-template-columns: 1fr;
   }
-
-  .card-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-}
-
-/* ==================== Additional Animations ==================== */
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-.profile-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
 }

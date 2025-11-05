@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "../style/AddProductForm.css";
 
-export default function AddProductForm({ onClose, onSubmit, initialData = null }) {
+export default function AddProductForm({ onClose, onProductAdded, initialData = null }) {
   const [form, setForm] = useState({
     name: initialData?.name || "",
     description: initialData?.description || "",
@@ -10,10 +10,12 @@ export default function AddProductForm({ onClose, onSubmit, initialData = null }
     stock: initialData?.stock || "",
   });
 
-  // ✅ รูปภาพสูงสุด 5 รูป (เก็บไฟล์จริง)
+  // ✅ รูปภาพสูงสุด 5 รูป
   const [images, setImages] = useState([null, null, null, null, null]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // ✅ อัปเดตค่าเมื่อแก้ไขสินค้า
+  // ✅ อัปเดตเมื่อแก้ไขสินค้า
   useEffect(() => {
     if (initialData) {
       setForm({
@@ -27,49 +29,60 @@ export default function AddProductForm({ onClose, onSubmit, initialData = null }
     }
   }, [initialData]);
 
-  // ✅ เปลี่ยนข้อมูลในฟอร์ม
   function handleChange(e) {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   }
 
-  // ✅ เมื่อเลือกรูปในแต่ละช่อง
   function handleImageChange(e, index) {
     const file = e.target.files[0];
     if (!file) return;
-
     const newImages = [...images];
     newImages[index] = file;
     setImages(newImages);
   }
 
-  // ✅ ลบรูปออกจากช่อง
   function handleRemoveImage(index) {
     const newImages = [...images];
     newImages[index] = null;
     setImages(newImages);
   }
 
-  // ✅ ส่งข้อมูลฟอร์ม
-  function handleSubmit(e) {
+  // ✅ ส่งข้อมูลไป backend โดยตรง
+  async function handleSubmit(e) {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", form.name);
-    formData.append("description", form.description);
-    formData.append("category", form.category);
-    formData.append("price", form.price);
-    formData.append("stock", form.stock);
+    setError("");
+    setLoading(true);
 
-    images.forEach((img) => {
-      if (img) formData.append("images", img);
-    });
+    try {
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      formData.append("category", form.category);
+      formData.append("price", form.price);
+      formData.append("stock", form.stock);
 
-    if (typeof onSubmit === "function") {
-      onSubmit(formData);
-    }
+      images.forEach((img) => {
+        if (img) formData.append("images", img);
+      });
 
-    // รีเซ็ตฟอร์มเมื่อเพิ่มสินค้าใหม่
-    if (!initialData) {
+      const res = await fetch("/api/admin/products", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "ไม่สามารถเพิ่มสินค้าได้");
+      }
+
+      // ✅ แจ้ง parent ว่ามีสินค้าใหม่ (ให้ refresh list)
+      if (typeof onProductAdded === "function") {
+        onProductAdded(data.product);
+      }
+
+      // ✅ รีเซ็ตฟอร์ม
       setForm({
         name: "",
         description: "",
@@ -78,6 +91,12 @@ export default function AddProductForm({ onClose, onSubmit, initialData = null }
         stock: "",
       });
       setImages([null, null, null, null, null]);
+      onClose();
+    } catch (err) {
+      console.error("❌ Error submitting product:", err);
+      setError(err.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -133,7 +152,6 @@ export default function AddProductForm({ onClose, onSubmit, initialData = null }
             <option value="accessories">อุปกรณ์</option>
           </select>
 
-          {/* ✅ ส่วนอัปโหลดรูป 5 ช่อง */}
           <div className="image-upload-section">
             {images.map((img, i) => (
               <label key={i} className="image-upload-box">
@@ -158,7 +176,6 @@ export default function AddProductForm({ onClose, onSubmit, initialData = null }
                 ) : (
                   <div className="upload-placeholder">➕</div>
                 )}
-
                 <input
                   type="file"
                   accept="image/*"
@@ -169,9 +186,15 @@ export default function AddProductForm({ onClose, onSubmit, initialData = null }
             ))}
           </div>
 
+          {error && <p className="error-text">{error}</p>}
+
           <div className="form-actions">
-            <button type="submit" className="btn-save">
-              {initialData ? "บันทึกการแก้ไข" : "เพิ่มสินค้าใหม่"}
+            <button type="submit" className="btn-save" disabled={loading}>
+              {loading
+                ? "กำลังบันทึก..."
+                : initialData
+                ? "บันทึกการแก้ไข"
+                : "เพิ่มสินค้าใหม่"}
             </button>
             <button type="button" className="btn-cancel" onClick={onClose}>
               ยกเลิก

@@ -254,7 +254,7 @@ export default function Profile() {
               </div>
               <div className="info-item">
                 <label>เบอร์โทรศัพท์</label>
-                <p>{user?.phone || 'ยังไม่ระบุ'}</p>
+                <p>{profileData.phone || 'ยังไม่ระบุ'}</p>
               </div>
               <div className="info-item">
                 <label>สถานะ</label>
