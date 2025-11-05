@@ -12,6 +12,7 @@ import profileRoutes from "./routes/profile.js";
 import adminUsersRoutes from "./routes/adminUsers.js";
 import userAccountRoutes from "./routes/userAccount.js";
 import adminProductRoutes from './routes/adminProducts.js';
+import cartRouter from "./routes/cart.js";
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/admin/users", adminUsersRoutes);
 app.use("/api/admin/products", adminProductRoutes);
 
+app.use("/cart", cartRouter);
 
 app.get("/api/products", async (req, res) => {
   try {

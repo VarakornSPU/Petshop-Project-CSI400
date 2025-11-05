@@ -1,93 +1,113 @@
-// Frontend/src/context/CartContext.jsx (ตรวจสอบว่ามีครบไหม)
-import { useNavigate } from 'react-router-dom';
-import { createContext, useContext, useState } from 'react';
-import { useAuth } from './AuthContext';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import axios from "axios";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext();
+const API_URL = "http://localhost:3001/cart";
 
 export function useCart() {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within CartProvider');
-  }
-  return context;
+  return useContext(CartContext);
 }
 
 export function CartProvider({ children }) {
+  const { token, isAuthenticated } = useAuth();
   const [cartItems, setCartItems] = useState([]);
-  const [notification, setNotification] = useState('');
+  const [notification, setNotification] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate(); 
 
-  const addToCart = (product) => {
-    // ตรวจสอบสถานะล็อกอินก่อน
-    if (!isAuthenticated) {
-      setNotification('⚠️ กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า');
-      setTimeout(() => setNotification(''), 3000);
-      
-      navigate('/login');
-
-      return false;
+  const fetchCart = async () => {
+    if (!token) return;
+    try {
+      const res = await axios.get(API_URL, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCartItems(res.data.items || res.data || []);
+    } catch (err) {
+      console.error("Fetch cart error:", err);
     }
-
-    // เพิ่มสินค้าในตะกร้า
-    setCartItems(prev => {
-      const found = prev.find(p => p.id === product.id);
-      if (found) {
-        return prev.map(p =>
-          p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-
-    setNotification(`เพิ่ม "${product.name}" ลงตะกร้าแล้ว ✅`);
-    setTimeout(() => setNotification(''), 3000);
-    return true;
   };
 
-  const removeFromCart = (id) => {
-    setCartItems(prev => prev.filter(p => p.id !== id));
-    setNotification('ลบสินค้าออกจากตะกร้าแล้ว');
-    setTimeout(() => setNotification(''), 2000);
-  };
-
-  const updateQuantity = (id, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(id);
+  const addToCart = async (product) => {
+    if (!isAuthenticated) {
+      setNotification("⚠️ กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้า");
       return;
     }
-    setCartItems(prev =>
-      prev.map(p =>
-        p.id === id ? { ...p, quantity } : p
-      )
+    try {
+      await axios.post(
+        `${API_URL}/add`,
+        { productId: product.id, quantity: 1 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchCart();
+      setNotification(`✅ เพิ่ม "${product.name}" ลงตะกร้าแล้ว`);
+      setIsCartOpen(true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const updateQuantity = async (id, quantity) => {
+    await axios.put(
+      `${API_URL}/update/${id}`,
+      { quantity },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
+    fetchCart();
   };
 
-  const clearCart = () => {
+  const removeFromCart = async (id) => {
+    await axios.delete(`${API_URL}/remove/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    fetchCart();
+  };
+
+  const clearCart = async () => {
+    await axios.delete(`${API_URL}/clear`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     setCartItems([]);
-    setNotification('ล้างตะกร้าสินค้าแล้ว');
-    setTimeout(() => setNotification(''), 2000);
   };
 
-  // คำนวณราคารวมและจำนวนสินค้า
-  const cartTotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+useEffect(() => {
+  if (isAuthenticated && token) {
+    fetchCart();
+  } else {
+    setCartItems([]); // ล้าง cart เมื่อ logout
+  }
+}, [isAuthenticated, token]);
 
-  const value = {
-    cartItems,
-    setCartItems,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    notification,
-    isCartOpen,
-    setIsCartOpen,
-    cartTotal,
-    cartItemsCount,
-  };
+useEffect(() => {
+  if (notification) {
+    const timer = setTimeout(() => setNotification(""), 3000); // 3 วินาทีแล้วหาย
+    return () => clearTimeout(timer); // เคลียร์ timer ถ้ามีการเปลี่ยนข้อความก่อนครบเวลา
+  }
+}, [notification]);
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+
+  const cartTotal = cartItems.reduce(
+    (sum, i) => sum + i.price * i.quantity,
+    0
+  );
+  const cartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+
+  return (
+    <CartContext.Provider
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        fetchCart,
+        cartTotal,
+        cartCount,
+        isCartOpen,
+        setIsCartOpen,
+        notification,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
 }
