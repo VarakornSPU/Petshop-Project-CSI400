@@ -1,26 +1,17 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AddProductForm from "../components/AddProductForm";
+import { useAuth } from "../context/AuthContext";
 import "../style/Admin.css";
 
 const API_URL = "http://localhost:3001/api/admin/products";
 
 export default function Admin() {
+  const { token } = useAuth();
   const [productsList, setProductsList] = useState([]);
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalOrders: 156,
-    totalRevenue: 245680,
-    totalCustomers: 89,
-  });
+  const [stats, setStats] = useState({ totalProducts: 0, totalOrders: 0, totalRevenue: 0, totalCustomers: 0 });
 
-  const [orders] = useState([
-    { id: 1, customer: "สมชาย ใจดี", date: "2025-01-15", total: 2890, status: "completed" },
-    { id: 2, customer: "สมหญิง รักสัตว์", date: "2025-01-15", total: 1590, status: "pending" },
-    { id: 3, customer: "วิชัย มีสุข", date: "2025-01-14", total: 4280, status: "completed" },
-    { id: 4, customer: "นภา ใจงาม", date: "2025-01-14", total: 890, status: "shipping" },
-    { id: 5, customer: "ประยุทธ์ รักหมา", date: "2025-01-13", total: 3490, status: "completed" },
-  ]);
+  const [orders, setOrders] = useState([]);
 
   const [activeTab, setActiveTab] = useState("overview");
   const [showForm, setShowForm] = useState(false);
@@ -29,17 +20,95 @@ export default function Admin() {
   const [productToDelete, setProductToDelete] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [statusChanging, setStatusChanging] = useState(false);
+
   // ✅ โหลดข้อมูลจาก backend
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (!token) return;
+    setLoading(true);
+    // fetch in parallel
+    Promise.all([fetchProducts(), fetchOrders()]).finally(() => setLoading(false));
+  }, [token]);
+
+  // --- เพิ่มฟังก์ชันดึงคำสั่งซื้อจาก backend ---
+  async function fetchOrders() {
+    try {
+      // เรียก endpoint สำหรับ admin โดยเฉพาะ
+      const res = await fetch("http://localhost:3001/api/orders/admin", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (!res.ok) throw new Error("ไม่สามารถโหลดคำสั่งซื้อได้");
+      const data = await res.json();
+      const ordersList = data.orders || [];
+
+      setOrders(ordersList);
+      const totalOrders = ordersList.length;
+      const totalRevenue = ordersList.reduce((s, o) => s + Number(o.total || 0), 0);
+
+      const ids = ordersList
+        .map(o => o.user_id || o.userId || (o.user && o.user.id) || null)
+        .filter(id => id !== null && id !== undefined);
+      let uniqueCustomers = new Set(ids).size;
+
+      if (uniqueCustomers === 0) {
+        const names = ordersList
+          .map(o => (o.customer || `${o.first_name || ""} ${o.last_name || ""}`).trim())
+          .filter(name => name);
+        uniqueCustomers = new Set(names).size;
+      }
+
+      setStats(prev => ({
+        ...prev,
+        totalOrders,
+        totalRevenue,
+        totalCustomers: uniqueCustomers
+      }));
+    } catch (err) {
+      console.error("❌ โหลดคำสั่งซื้อไม่สำเร็จ:", err);
+    }
+  }
+
+  async function openOrderModal(orderId) {
+    if (!orderId) return;
+    setOrderLoading(true);
+    setShowOrderModal(true);
+    setSelectedOrder(null);
+    try {
+      const res = await fetch(`http://localhost:3001/api/orders/${orderId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (!res.ok) throw new Error("ไม่สามารถโหลดรายละเอียดคำสั่งซื้อได้");
+      const data = await res.json();
+      const sel = data.order || data;
+
+      // ensure order has created_at_local/date like list endpoint
+      sel.created_at_local = sel.created_at_local || sel.date || sel.created_at || null;
+      sel.date = sel.created_at_local || sel.date || sel.created_at || null;
+
+      // normalize payments timestamps (use created_at_local if backend provides, else payment_date or created_at)
+      sel.payments = (sel.payments || []).map(p => ({
+        ...p,
+        created_at_local: p.created_at_local || p.payment_date || p.created_at || null
+      }));
+
+      setSelectedOrder(sel);
+    } catch (err) {
+      console.error("โหลดรายละเอียดคำสั่งซื้อผิดพลาด:", err);
+      setSelectedOrder({ error: "ไม่สามารถโหลดรายละเอียดได้" });
+    } finally {
+      setOrderLoading(false);
+    }
+  }
 
   async function fetchProducts() {
     setLoading(true);
     try {
       const res = await fetch(API_URL);
       if (!res.ok) throw new Error("ไม่สามารถโหลดข้อมูลได้");
-      
+
       const data = await res.json();
       setProductsList(data);
       setStats(prev => ({
@@ -154,6 +223,158 @@ export default function Admin() {
     setProductToDelete(null);
   }
 
+  // --- เพิ่ม helper แปลง status เป็นข้อความและคลาส ---
+  function getStatusLabel(status) {
+    const s = (status || "").toString().toLowerCase();
+    switch (s) {
+      case "pending": return { label: "รอดำเนินการ", cls: "pending" };
+      case "confirmed": return { label: "ชำระแล้ว", cls: "confirmed" }; // payment success
+      case "completed": return { label: "สำเร็จ", cls: "completed" };
+      case "shipping": return { label: "กำลังจัดส่ง", cls: "shipping" };
+      case "cancelled":
+      case "canceled": return { label: "ยกเลิก", cls: "cancelled" };
+      case "refunded": return { label: "คืนเงิน", cls: "refunded" };
+      default: return { label: status || "ไม่ระบุ", cls: "unknown" };
+    }
+  }
+
+  function formatOrderDate(o) {
+    const raw = o?.created_at_local || o?.date || o?.created_at;
+    if (!raw) return "";
+    // handle "YYYY-MM-DD HH:MM:SS" (created_at_local from DB)
+    const mysqlLike = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+    try {
+      let d;
+      if (mysqlLike.test(raw)) {
+        // treat as Bangkok local time, create ISO with +07:00 offset
+        d = new Date(raw.replace(" ", "T") + "+07:00");
+      } else {
+        // fallback: let Date parse (ISO with timezone or UTC string)
+        d = new Date(raw);
+      }
+      if (Number.isNaN(d.getTime())) return String(raw);
+      return new Intl.DateTimeFormat("th-TH", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Bangkok"
+      }).format(d);
+    } catch (e) {
+      return String(raw);
+    }
+  }
+
+  // --- เพิ่ม helper แปลง timestamp ของ payment ให้เป็นเวลาไทย ---
+  function formatTimestamp(raw) {
+    if (!raw) return "";
+    const mysqlLike = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+    try {
+      let d;
+      if (mysqlLike.test(raw)) {
+        d = new Date(raw.replace(" ", "T") + "+07:00");
+      } else {
+        d = new Date(raw);
+      }
+      if (Number.isNaN(d.getTime())) return String(raw);
+      return new Intl.DateTimeFormat("th-TH", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Bangkok"
+      }).format(d);
+    } catch (e) {
+      return String(raw);
+    }
+  }
+
+  async function openOrderModal(orderId) {
+    if (!orderId) return;
+    setOrderLoading(true);
+    setShowOrderModal(true);
+    setSelectedOrder(null);
+    try {
+      const res = await fetch(`http://localhost:3001/api/orders/${orderId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (!res.ok) throw new Error("ไม่สามารถโหลดรายละเอียดคำสั่งซื้อได้");
+      const data = await res.json();
+      const sel = data.order || data;
+
+      // normalize payments timestamps (use created_at_local if backend provides, else created_at/payment_date)
+      sel.payments = (sel.payments || []).map(p => ({
+        ...p,
+        created_at_local: p.created_at_local || p.payment_date || p.created_at
+      }));
+
+      setSelectedOrder(sel);
+    } catch (err) {
+      console.error("โหลดรายละเอียดคำสั่งซื้อผิดพลาด:", err);
+      setSelectedOrder({ error: "ไม่สามารถโหลดรายละเอียดได้" });
+    } finally {
+      setOrderLoading(false);
+    }
+  }
+
+  function getCustomerName(o) {
+    if (!o) return "";
+    // prefer explicit customer field from backend
+    if (o.customer) return o.customer;
+    // try nested user object
+    if (o.user && (o.user.first_name || o.user.last_name)) {
+      return `${(o.user.first_name || "").trim()} ${(o.user.last_name || "").trim()}`.trim();
+    }
+    // try top-level fields
+    if (o.first_name || o.last_name) return `${(o.first_name || "").trim()} ${(o.last_name || "").trim()}`.trim();
+    // fallback to email if available
+    if (o.email) return o.email;
+    return `user#${o.user_id || o.userId || "?"}`;
+  }
+
+  const orderStatuses = [
+    { value: "pending", label: "รอดำเนินการ" },
+    { value: "confirmed", label: "ชำระแล้ว" },
+    { value: "shipping", label: "กำลังจัดส่ง" },
+    { value: "completed", label: "สำเร็จ" },
+    { value: "cancelled", label: "ยกเลิก" },
+    { value: "refunded", label: "คืนเงิน" },
+  ];
+
+  async function updateOrderStatus(orderId, newStatus) {
+    if (!orderId || !newStatus) return;
+    setStatusChanging(true);
+    try {
+      const res = await fetch(`http://localhost:3001/api/orders/${orderId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "ไม่สามารถเปลี่ยนสถานะได้");
+      }
+      const data = await res.json();
+      const updated = data.order || data;
+
+      // update modal and list
+      setSelectedOrder(updated);
+      setOrders(prev => prev.map(o => (o.id === updated.id ? updated : o)));
+    } catch (e) {
+      console.error("Update status failed", e);
+      alert(e.message || "Update failed");
+    } finally {
+      setStatusChanging(false);
+    }
+  }
+
   return (
     <div className="admin-container">
       <div className="admin-header">
@@ -163,10 +384,10 @@ export default function Admin() {
 
       {/* Loading Indicator */}
       {loading && (
-        <div style={{ 
-          position: "fixed", 
-          top: "50%", 
-          left: "50%", 
+        <div style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
           transform: "translate(-50%, -50%)",
           background: "rgba(0,0,0,0.8)",
           color: "white",
@@ -312,8 +533,8 @@ export default function Admin() {
                       <td>
                         <div className="product-image-cell">
                           {product.images && product.images.length > 0 ? (
-                            <img 
-                              src={`http://localhost:3001${product.images[0]}`} 
+                            <img
+                              src={`http://localhost:3001${product.images[0]}`}
                               alt={product.name}
                               style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "5px" }}
                             />
@@ -354,26 +575,26 @@ export default function Admin() {
           {/* ✅ Popup ยืนยันการลบ */}
           {showDeleteModal && (
             <div className="delete-modal-overlay">
-            <div className="delete-modal">
-              <div className="delete-modal-header">
-                <h3>🗑️ ยืนยันการลบสินค้า</h3>
-                <button className="btn-close" onClick={handleCancelDelete}>
-                  &times;
-                </button>
-              </div>
-              <p className="delete-modal-text">
-                คุณต้องการลบ <b>{productToDelete?.name}</b> ออกจากระบบหรือไม่?
-              </p>
-              <div className="delete-modal-actions">
-                <button className="btn-confirm" onClick={handleDeleteConfirmed}>
-                  ยืนยันการลบ
-                </button>
-                <button className="btn-cancel" onClick={handleCancelDelete}>
-                  ยกเลิก
-                </button>
+              <div className="delete-modal">
+                <div className="delete-modal-header">
+                  <h3>🗑️ ยืนยันการลบสินค้า</h3>
+                  <button className="btn-close" onClick={handleCancelDelete}>
+                    &times;
+                  </button>
+                </div>
+                <p className="delete-modal-text">
+                  คุณต้องการลบ <b>{productToDelete?.name}</b> ออกจากระบบหรือไม่?
+                </p>
+                <div className="delete-modal-actions">
+                  <button className="btn-confirm" onClick={handleDeleteConfirmed}>
+                    ยืนยันการลบ
+                  </button>
+                  <button className="btn-cancel" onClick={handleCancelDelete}>
+                    ยกเลิก
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
           )}
         </div>
       )}
@@ -398,23 +619,130 @@ export default function Admin() {
                 {orders.map((order) => (
                   <tr key={order.id}>
                     <td>#{order.id}</td>
-                    <td>{order.customer}</td>
-                    <td>{order.date}</td>
+                    <td>{getCustomerName(order)}</td>
+                    <td>{formatOrderDate(order)}</td>
                     <td>฿{order.total.toLocaleString()}</td>
                     <td>
-                      <span className={`status-badge ${order.status}`}>
-                        {order.status === "completed" && "สำเร็จ"}
-                        {order.status === "pending" && "รอดำเนินการ"}
-                        {order.status === "shipping" && "กำลังจัดส่ง"}
-                      </span>
+                      {(() => {
+                        const s = getStatusLabel(order.status);
+                        return (
+                          <span className={`status-badge ${s.cls}`}>
+                            {s.label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td>
-                      <button className="btn-view">ดูรายละเอียด</button>
+                      <button className="btn-view" onClick={() => openOrderModal(order.id)}>ดูรายละเอียด</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Order detail modal */}
+      {showOrderModal && (
+        <div className="order-modal-overlay" onClick={() => setShowOrderModal(false)}>
+          <div className="order-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="order-modal-header">
+              <h3>รายละเอียดคำสั่งซื้อ {selectedOrder ? `#${selectedOrder.id}` : ""}</h3>
+              <button className="modal-close" onClick={() => setShowOrderModal(false)}>&times;</button>
+            </div>
+
+            <div className="order-modal-body">
+              {orderLoading && <div className="modal-loading">กำลังโหลด...</div>}
+
+              {!orderLoading && selectedOrder && selectedOrder.error && (
+                <div className="modal-error">{selectedOrder.error}</div>
+              )}
+
+              {!orderLoading && selectedOrder && !selectedOrder.error && (
+                <>
+                  <div className="order-meta">
+                    <div className="meta-item"><strong>ลูกค้า:</strong> {getCustomerName(selectedOrder)}</div>
+                    <div className="meta-item"><strong>วันที่:</strong> {formatOrderDate(selectedOrder)}</div>
+                    <div className="meta-item"><strong>สถานะ:</strong>
+                      <span className={`status-badge ${getStatusLabel(selectedOrder?.status).cls}`} style={{ marginLeft: 8 }}>
+                        {getStatusLabel(selectedOrder?.status).label}
+                      </span>
+                    </div>
+                    <div className="meta-item"><strong>ยอดรวม:</strong> ฿{Number(selectedOrder?.total || 0).toLocaleString()}</div>
+                  </div>
+
+                  <hr />
+
+                  <div className="order-section">
+                    <h4>รายการสินค้า</h4>
+                    <ul className="order-items">
+                      {(selectedOrder.items || []).map(it => (
+                        <li key={it.id} className="order-item">
+                          <div className="oi-left">
+                            <div className="oi-name">{it.product_name}</div>
+                            <div className="oi-meta">จำนวน: {it.quantity} × ฿{Number(it.product_price || it.price || 0).toFixed(2)}</div>
+                          </div>
+                          <div className="oi-right">฿{Number(it.subtotal || (it.product_price * it.quantity) || 0).toFixed(2)}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="order-section">
+                    <h4>ข้อมูลจัดส่ง</h4>
+                    <div className="shipping">
+                      <div>{(selectedOrder.shipping_recipient_name || selectedOrder.shipping?.name || selectedOrder.shipping?.recipientName) || "-"}</div>
+                      <div>{(selectedOrder.shipping_phone || selectedOrder.shipping?.phone) || "-"}</div>
+                      <div>
+                        {(selectedOrder.shipping_address_line1 || selectedOrder.shipping?.line1 || selectedOrder.shipping?.addressLine1) || "-"}{" "}
+                        {(selectedOrder.shipping_address_line2 || selectedOrder.shipping?.address_line2 || selectedOrder.shipping?.addressLine2) || ""}
+                      </div>
+                      <div>{(selectedOrder.shipping_subdistrict || selectedOrder.shipping?.subdistrict) || ""} {(selectedOrder.shipping_district || selectedOrder.shipping?.district) || ""} {(selectedOrder.shipping_province || selectedOrder.shipping?.province) || ""} {(selectedOrder.shipping_postal_code || selectedOrder.shipping?.postal_code) || ""}</div>
+                    </div>
+                  </div>
+
+                  <div className="order-section">
+                    <h4>การชำระเงิน</h4>
+                    <ul className="payments-list">
+                      {(selectedOrder.payments || []).map(p => (
+                        <li key={p.id}>
+                          <div style={{ fontSize: 12, color: "#666" }}>
+                            {p.payment_status} — {formatTimestamp(p.created_at_local || p.payment_date || p.created_at)}
+                          </div>
+                        </li>
+                      ))}
+                      {(selectedOrder.payments || []).length === 0 && <li>ยังไม่มีรายการชำระเงิน</li>}
+                    </ul>
+                  </div>
+
+                  <div className="order-actions" style={{ alignItems: "center" }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <select
+                        value={selectedOrder?.status || ""}
+                        onChange={(e) => setSelectedOrder(prev => ({ ...prev, status: e.target.value }))}
+                        style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #e6e9ef" }}
+                      >
+                        {orderStatuses.map(s => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </select>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.status)}
+                        disabled={statusChanging}
+                      >
+                        {statusChanging ? "กำลังบันทึก..." : "บันทึกสถานะ"}
+                      </button>
+                    </div>
+
+                    <div style={{ marginLeft: 12 }}>
+                      <button className="btn" onClick={() => setShowOrderModal(false)}>ปิด</button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

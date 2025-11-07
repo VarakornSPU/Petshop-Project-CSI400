@@ -13,6 +13,8 @@ import adminUsersRoutes from "./routes/adminUsers.js";
 import userAccountRoutes from "./routes/userAccount.js";
 import adminProductRoutes from './routes/adminProducts.js';
 import cartRouter from "./routes/cart.js";
+import ordersRoutes from './routes/orders.js';
+import paymentsRoutes from './routes/payments.js';
 
 dotenv.config();
 
@@ -29,15 +31,32 @@ app.use(express.urlencoded({ extended: true }));
 // Static files
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-pool.connect()
-  .then(() => {
-    console.log('Connected to NeonDB successfully');
-    console.log('Database Host:', pool.options.host);
-  })
-  .catch(err => {
-    console.error('Database connection error:', err);
-    process.exit(1);
+// ----- แทนการเรียก pool.connect() ยาว ๆ ด้วยการทดสอบสั้น ๆ และจับ error -----
+(async () => {
+  try {
+    await pool.query('SELECT 1');
+    console.log('Connected to Postgres (test query OK)');
+  } catch (err) {
+    console.error('Postgres test query failed (server will still start):', err.message || err);
+  }
+})();
+
+// จับ error ที่เกิดบน idle clients (log ไว้)
+if (pool && typeof pool.on === 'function') {
+  pool.on('error', (err) => {
+    console.error('Unexpected Postgres pool error:', err);
+    // ไม่ process.exit เพื่อให้ server ยังทำงานได้ — สามารถเพิ่ม reconnect/backoff ถ้าต้องการ
   });
+}
+
+// ป้องกัน uncaught exceptions / unhandled rejections ให้ log ก่อน
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  // ถ้าต้องการ restart ให้ใช้ process.exit(1) แล้วใช้ process manager (pm2/systemd/docker) เพื่อ restart
+});
 
 
 // Authentication & User Management
@@ -147,6 +166,8 @@ app.delete("/api/products/:id", async (req, res) => {
   }
 });
 
+app.use('/api/orders', ordersRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 app.get("/health", async (req, res) => {
   try {

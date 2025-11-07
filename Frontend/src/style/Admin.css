@@ -483,9 +483,27 @@ td {
   white-space: nowrap;
 }
 
-.status-badge.completed {
+.status-badge.confirmed {
+  /* แสดงเป็นสีเขียว (ชำระแล้ว) */
   background: linear-gradient(135deg, #6ee7b7 0%, #10b981 100%);
   color: #065f46;
+}
+
+.status-badge.cancelled,
+.status-badge.canceled {
+  background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%);
+  color: #991b1b;
+}
+
+.status-badge.refunded {
+  background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+  color: #92400e;
+}
+
+.status-badge.unknown {
+  background: linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%);
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 
 .status-badge.pending {
@@ -935,3 +953,77 @@ td {
   }
 }
 
+/* Order detail modal */
+.order-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 15, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+.order-modal {
+  width: min(920px, 98%);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.5);
+  padding: 18px;
+  border: 1px solid #e6e9ef;
+}
+.order-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.order-modal-header h3 { margin: 0; font-size: 1.1rem; }
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  color: #64748b;
+}
+.order-modal-body { padding-top: 6px; }
+.modal-loading { padding: 20px; text-align: center; color: #374151; }
+.modal-error { color: #b91c1c; padding: 12px; }
+
+/* meta block */
+.order-meta { display:flex; gap:20px; flex-wrap:wrap; margin-bottom:12px; color:#374151; font-size:14px; }
+.order-section { margin-top: 12px; }
+.order-items { list-style:none; padding:0; margin:0; }
+.order-item { display:flex; justify-content:space-between; padding:10px 8px; border-radius:8px; background:#fbfbfd; margin-bottom:8px; align-items:center; }
+.oi-left { display:flex; flex-direction:column; gap:6px; }
+.oi-name { font-weight:600; color:#0f172a; }
+.oi-meta { color:#6b7280; font-size:13px; }
+.payments-list { list-style:none; padding:0; margin:0; color:#374151; }
+.shipping { color:#374151; }
+
+/* actions */
+.order-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
+.order-actions .btn { padding:8px 12px; border-radius:8px; border:1px solid #e6e9ef; background:#fff; cursor:pointer; }
+.order-actions .btn-primary { background: linear-gradient(90deg,#06b6d4,#0ea5a6); color:#fff; border:none; }
+
+/* ensure status-badge visible in modal */
+.status-badge { padding:6px 10px; border-radius:999px; font-weight:600; font-size:13px; }
+
+/* small screens */
+@media (max-width:600px){
+  .order-meta { flex-direction: column; gap:8px; }
+  .order-modal { padding:12px; }
+}
+
+.order-modal .status-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+  vertical-align: middle;
+}

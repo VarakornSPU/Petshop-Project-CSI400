@@ -63,10 +63,17 @@ export function CartProvider({ children }) {
   };
 
   const clearCart = async () => {
-    await axios.delete(`${API_URL}/clear`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setCartItems([]);
+    try {
+      await axios.delete(`${API_URL}/clear`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCartItems([]);
+      // ให้แน่ใจว่า backend ถูกเรียกแล้วดึงข้อมูลซ้ำ (safety)
+      fetchCart();
+      setIsCartOpen(false);
+    } catch (err) {
+      console.error("Clear cart error:", err);
+    }
   };
 
 useEffect(() => {

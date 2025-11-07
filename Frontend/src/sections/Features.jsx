@@ -5,7 +5,7 @@ export default function Features() {
   return (
     <section className="features">
       <div className="container">
-        <h2 className="section-title">ทำไมต้องเลือกเรา</h2>
+        <h2 className="section-title-1">ทำไมต้องเลือกเรา</h2>
         <div className="features-grid">
           <div className="feature-card">
             <div className="feature-icon">🚚</div>

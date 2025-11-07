@@ -23,6 +23,8 @@ import Unauthorized from "./pages/Unauthorized";
 import AddressManagement from "./pages/AddressManagement";
 import Profile from "./pages/Profile";
 import AdminUsers from "./pages/AdminUsers";
+import Checkout from "./pages/Checkout";
+import MyOrders from "./pages/MyOrders";
 
 export default function App() {
   return (
@@ -98,6 +100,24 @@ export default function App() {
                   </div>
                 </ProtectedRoute>
               } 
+            />
+
+            {/* --- เพิ่ม Checkout และ MyOrders routes --- */}
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute allowedRoles={['customer','admin']}>
+                  <Checkout />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-orders"
+              element={
+                <ProtectedRoute allowedRoles={['customer','admin']}>
+                  <MyOrders />
+                </ProtectedRoute>
+              }
             />
           </Routes>
         </main>
