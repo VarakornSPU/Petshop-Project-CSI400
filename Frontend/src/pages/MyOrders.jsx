@@ -362,9 +362,12 @@ export default function MyOrders() {
                         )}
 
                         {/* แสดงวันที่รับสินค้า */}
-                        {o.status === "completed" && o.delivered_at && (
+                        {o.status === "completed" && (o.delivered_at || o.delivered_at_local) && ( // ตรวจสอบว่ามีข้อมูลหรือไม่
                             <div className="delivery-confirmed">
-                                ✓ ยืนยันรับสินค้าเมื่อ: {new Date(o.delivered_at).toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })}
+                                ✓ ยืนยันรับสินค้าเมื่อ: {
+                                    o.delivered_at_local // <-- ใช้ฟิลด์ที่ API ส่งมาเป็นเวลาไทยแล้ว
+                                    || new Date(o.delivered_at).toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })
+                                }
                             </div>
                         )}
                     </div>

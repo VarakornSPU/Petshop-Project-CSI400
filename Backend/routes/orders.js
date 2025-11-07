@@ -102,31 +102,53 @@ router.post("/", authenticateToken, async (req, res) => {
 router.get("/", authenticateToken, async (req, res) => {
     const client = await pool.connect();
     try {
-        // ลูกค้าดูคำสั่งซื้อของตัวเองเสมอ
-        const ordersRes = await client.query("SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC", [req.user.id]);
+        // 1) ดึงรายการคำสั่งซื้อของ user ทั้งหมด + เวลาไทยใน Query เดียว (รวม delivered_at_local)
+        const ordersRes = await client.query(`
+            SELECT 
+                o.*, 
+                to_char((o.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS created_at_local,
+                to_char((o.updated_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS updated_at_local,
+                to_char((o.delivered_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS delivered_at_local
+            FROM orders o 
+            WHERE user_id = $1 
+            ORDER BY created_at DESC
+        `, [req.user.id]);
+        
         const orders = ordersRes.rows;
+        const orderIds = orders.map(o => o.id);
+        
+        // หากไม่มีคำสั่งซื้อ ให้คืนค่าทันที
+        if (orderIds.length === 0) {
+            return res.json({ orders: [] });
+        }
+
+        // 2) ดึง items ทั้งหมดใน Batch เดียว (แก้ปัญหา N+1)
+        const itemsRes = await client.query(
+            `SELECT * FROM order_items WHERE order_id = ANY($1)`,
+            [orderIds]
+        );
+        
+        // 3) ดึง payments ทั้งหมดใน Batch เดียว (แก้ปัญหา N+1)
+        const paymentsRes = await client.query(
+            `SELECT p.*, to_char((p.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS created_at_local
+             FROM payments p 
+             WHERE order_id = ANY($1) 
+             ORDER BY p.created_at DESC`,
+            [orderIds]
+        );
+
+        // 4) จัดกลุ่มและผูกข้อมูล
+        const itemsByOrder = {};
+        for (const it of itemsRes.rows) (itemsByOrder[it.order_id] ||= []).push(it);
+        const paymentsByOrder = {};
+        for (const p of paymentsRes.rows) (paymentsByOrder[p.order_id] ||= []).push(p);
 
         for (const o of orders) {
-            const itemsRes = await client.query("SELECT * FROM order_items WHERE order_id = $1", [o.id]);
-            const paymentsRes = await client.query("SELECT * FROM payments WHERE order_id = $1 ORDER BY created_at DESC", [o.id]);
-            o.items = itemsRes.rows;
-            o.payments = paymentsRes.rows;
-
-            const t = await client.query(
-                `SELECT to_char((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS created_at_local,
-                      to_char((updated_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS updated_at_local
-               FROM orders WHERE id = $1`,
-                [o.id]
-            );
-            if (t.rows[0]) {
-                o.created_at_local = t.rows[0].created_at_local;
-                o.updated_at_local = t.rows[0].updated_at_local;
-
-                const userRes = await client.query("SELECT first_name, last_name FROM users WHERE id = $1", [o.user_id]);
-                const usr = userRes.rows[0];
-                o.customer = usr ? `${usr.first_name} ${usr.last_name}` : `user#${o.user_id}`;
-                o.date = o.created_at_local;
-            }
+            o.items = itemsByOrder[o.id] || [];
+            o.payments = paymentsByOrder[o.id] || [];
+            // ใช้ข้อมูลผู้ใช้ที่ล็อกอินอยู่ (เพราะเป็นคำสั่งซื้อของเขา)
+            o.customer = `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim(); 
+            o.date = o.created_at_local;
         }
 
         res.json({ orders });
@@ -145,12 +167,13 @@ router.get("/admin", authenticateToken, async (req, res) => {
 
     const client = await pool.connect();
     try {
-        // ✅ ดึง orders ทั้งหมดโดยไม่พึ่งพา JOIN ก่อน
+        // ✅ ดึง orders ทั้งหมด (Admin)
         const ordersRes = await client.query(`
             SELECT 
                 o.*, 
                 to_char((o.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS created_at_local,
-                to_char((o.updated_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS updated_at_local
+                to_char((o.updated_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS updated_at_local,
+                to_char((o.delivered_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS delivered_at_local -- เพิ่ม delivered_at_local
             FROM orders o
             ORDER BY o.created_at DESC
             LIMIT 500
@@ -173,7 +196,7 @@ router.get("/admin", authenticateToken, async (req, res) => {
             userMap[u.id] = u;
         }
 
-        // ✅ ดึง items + payments
+        // ✅ ดึง items + payments (Batch Fetching)
         const itemsRes = await client.query(`SELECT * FROM order_items WHERE order_id = ANY($1)`, [orderIds]);
         const paymentsRes = await client.query(`
             SELECT p.*, 
@@ -220,7 +243,6 @@ router.get("/admin", authenticateToken, async (req, res) => {
 
 
 // เพิ่ม: GET /api/orders/:id - ดึงรายละเอียดคำสั่งซื้อ (ตรวจสิทธิ์)
-// เพิ่ม/แก้ route GET /:id ให้แน่ใจว่าส่งฟิลด์เดียวกับ list
 router.get("/:id", authenticateToken, async (req, res) => {
     const id = Number(req.params.id);
     const client = await pool.connect();
@@ -371,14 +393,16 @@ router.put("/:id/confirm-delivery", authenticateToken, async (req, res) => {
             });
         }
 
-        // อัปเดตเป็น completed
+        // ✅ อัปเดตเป็น completed พร้อมคืนค่าเวลาแบบ Bangkok
         const updateRes = await client.query(
             `UPDATE orders 
-       SET status = 'completed', 
-           delivered_at = NOW(), 
-           updated_at = NOW() 
-       WHERE id = $1 
-       RETURNING *`,
+             SET status = 'completed', 
+                 delivered_at = NOW(), 
+                 updated_at = NOW() 
+             WHERE id = $1 
+             RETURNING *,
+               to_char((delivered_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS delivered_at_local,
+               to_char((updated_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS updated_at_local`,
             [id]
         );
 
@@ -397,10 +421,13 @@ router.put("/:id/confirm-delivery", authenticateToken, async (req, res) => {
         updatedOrder.items = itemsRes.rows;
         updatedOrder.payments = paymentsRes.rows;
 
+        // ✅ เพิ่มฟิลด์สำหรับ frontend ใช้งาน
+        updatedOrder.date = updatedOrder.delivered_at_local || updatedOrder.delivered_at;
+
         await client.query("COMMIT");
 
         res.json({
-            message: "ยืนยันรับสินค้าสำเร็จ",
+            message: "✅ ยืนยันรับสินค้าสำเร็จ",
             order: updatedOrder
         });
 
@@ -412,6 +439,7 @@ router.put("/:id/confirm-delivery", authenticateToken, async (req, res) => {
         client.release();
     }
 });
+
 
 // PUT /api/orders/:id/cancel - ลูกค้ายกเลิกคำสั่งซื้อ + คืนสต็อก
 router.put("/:id/cancel", authenticateToken, async (req, res) => {
