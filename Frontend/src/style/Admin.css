@@ -1027,3 +1027,24 @@ td {
   line-height: 1;
   vertical-align: middle;
 }
+
+/* เพิ่ม status colors */
+.status-badge.preparing {
+  background-color: #2196F3;
+  color: white;
+}
+
+.status-badge.ready {
+  background-color: #9C27B0;
+  color: white;
+}
+
+.status-badge.shipping {
+  background-color: #FF9800;
+  color: white;
+}
+
+.status-badge.completed {
+  background-color: #4CAF50;
+  color: white;
+}

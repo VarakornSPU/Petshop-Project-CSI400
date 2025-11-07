@@ -103,7 +103,7 @@ router.put("/:id/success", authenticateToken, async (req, res) => {
     await client.query("UPDATE payments SET payment_status = 'success', updated_at = NOW() WHERE id = $1", [paymentId]);
 
     // อัปเดต order -> confirmed
-    await client.query("UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE id = $1", [order.id]);
+    await client.query("UPDATE orders SET status = 'paid', updated_at = NOW() WHERE id = $1", [order.id]);
 
     await client.query("COMMIT");
 

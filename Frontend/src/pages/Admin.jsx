@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AddProductForm from "../components/AddProductForm";
 import { useAuth } from "../context/AuthContext";
+import OrderFlowManagement from "../components/OrderFlowManagement";
 import "../style/Admin.css";
 
 const API_URL = "http://localhost:3001/api/admin/products";
@@ -45,27 +46,26 @@ export default function Admin() {
       const ordersList = data.orders || [];
 
       setOrders(ordersList);
-      const totalOrders = ordersList.length;
-      const totalRevenue = ordersList.reduce((s, o) => s + Number(o.total || 0), 0);
-
-      const ids = ordersList
-        .map(o => o.user_id || o.userId || (o.user && o.user.id) || null)
-        .filter(id => id !== null && id !== undefined);
-      let uniqueCustomers = new Set(ids).size;
-
-      if (uniqueCustomers === 0) {
-        const names = ordersList
-          .map(o => (o.customer || `${o.first_name || ""} ${o.last_name || ""}`).trim())
-          .filter(name => name);
-        uniqueCustomers = new Set(names).size;
+      if (data.stats) {
+        setStats(prev => ({
+          ...prev,
+          totalOrders: data.stats.totalOrders || 0,
+          totalRevenue: data.stats.totalRevenue || 0,
+          totalCustomers: data.stats.totalCustomers || 0
+        }));
+      } else {
+        // fallback ถ้า backend ไม่มี stats
+        const totalOrders = ordersList.length;
+        const totalRevenue = ordersList.reduce((s, o) => s + Number(o.total || 0), 0);
+        setStats(prev => ({
+          ...prev,
+          totalOrders,
+          totalRevenue,
+          totalCustomers: new Set(
+            ordersList.map(o => o.user_id || o.userId || (o.user && o.user.id))
+          ).size
+        }));
       }
-
-      setStats(prev => ({
-        ...prev,
-        totalOrders,
-        totalRevenue,
-        totalCustomers: uniqueCustomers
-      }));
     } catch (err) {
       console.error("❌ โหลดคำสั่งซื้อไม่สำเร็จ:", err);
     }
@@ -337,13 +337,29 @@ export default function Admin() {
   }
 
   const orderStatuses = [
-    { value: "pending", label: "รอดำเนินการ" },
-    { value: "confirmed", label: "ชำระแล้ว" },
+    { value: "pending_payment", label: "รอชำระเงิน" },
+    { value: "paid", label: "ชำระแล้ว" },
+    { value: "preparing", label: "กำลังเตรียมสินค้า" },
+    { value: "ready_to_ship", label: "พร้อมจัดส่ง" },
     { value: "shipping", label: "กำลังจัดส่ง" },
     { value: "completed", label: "สำเร็จ" },
     { value: "cancelled", label: "ยกเลิก" },
-    { value: "refunded", label: "คืนเงิน" },
   ];
+
+  function getStatusLabel(status) {
+    const s = (status || "").toString().toLowerCase();
+    switch (s) {
+      case "pending_payment": return { label: "รอชำระเงิน", cls: "pending" };
+      case "paid": return { label: "ชำระแล้ว", cls: "confirmed" };
+      case "preparing": return { label: "กำลังเตรียมสินค้า", cls: "preparing" };
+      case "ready_to_ship": return { label: "พร้อมจัดส่ง", cls: "ready" };
+      case "shipping": return { label: "กำลังจัดส่ง", cls: "shipping" };
+      case "completed": return { label: "สำเร็จ", cls: "completed" };
+      case "cancelled":
+      case "canceled": return { label: "ยกเลิก", cls: "cancelled" };
+      default: return { label: status || "ไม่ระบุ", cls: "unknown" };
+    }
+  }
 
   async function updateOrderStatus(orderId, newStatus) {
     if (!orderId || !newStatus) return;
@@ -419,10 +435,24 @@ export default function Admin() {
         >
           คำสั่งซื้อ
         </button>
+        {/* ✅ เพิ่ม Tab นี้ */}
+        <button
+          className={activeTab === "order-flow" ? "tab-btn active" : "tab-btn"}
+          onClick={() => setActiveTab("order-flow")}
+        >
+          🎯 จัดการคำสั่งซื้อ
+        </button>
         <Link to="/admin/users" className="tab-btn">
           จัดการผู้ใช้
         </Link>
       </div>
+
+      {/* ---------------- จัดการคำสั่งซื้อ (Flow) ---------------- */}
+      {activeTab === "order-flow" && (
+        <div className="admin-content">
+          <OrderFlowManagement />
+        </div>
+      )}
 
       {/* ---------------- ภาพรวม ---------------- */}
       {activeTab === "overview" && (

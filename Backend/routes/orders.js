@@ -46,7 +46,7 @@ router.post("/", authenticateToken, async (req, res) => {
          shipping_address_line1, shipping_address_line2,
          shipping_subdistrict, shipping_district, shipping_province, shipping_postal_code,
          subtotal, shipping_fee, total, created_at
-       ) VALUES ($1,$2,'pending',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NOW())
+       ) VALUES ($1,$2,'pending_payment',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NOW())
        RETURNING *`,
             [
                 userId, orderNumber,
@@ -145,17 +145,16 @@ router.get("/admin", authenticateToken, async (req, res) => {
 
     const client = await pool.connect();
     try {
-        // 1) get orders with user info and created_at_local in one query
+        // ✅ ดึง orders ทั้งหมดโดยไม่พึ่งพา JOIN ก่อน
         const ordersRes = await client.query(`
-      SELECT o.*, 
-             u.first_name, u.last_name, u.email,
-             to_char((o.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS created_at_local,
-             to_char((o.updated_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS updated_at_local
-      FROM orders o
-      LEFT JOIN users u ON u.id = o.user_id
-      ORDER BY o.created_at DESC
-      LIMIT 500
-    `);
+            SELECT 
+                o.*, 
+                to_char((o.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS created_at_local,
+                to_char((o.updated_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS updated_at_local
+            FROM orders o
+            ORDER BY o.created_at DESC
+            LIMIT 500
+        `);
 
         const orders = ordersRes.rows;
         const orderIds = orders.map(o => o.id);
@@ -163,41 +162,54 @@ router.get("/admin", authenticateToken, async (req, res) => {
             return res.json({ orders: [], stats: { totalOrders: 0, totalRevenue: 0, totalCustomers: 0 } });
         }
 
-        // 2) fetch items and payments in two batch queries
-        const itemsRes = await client.query(
-            `SELECT * FROM order_items WHERE order_id = ANY($1)`,
-            [orderIds]
-        );
-        const paymentsRes = await client.query(
-            `SELECT p.*, to_char((p.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS created_at_local
-       FROM payments p WHERE order_id = ANY($1) ORDER BY p.created_at DESC`,
-            [orderIds]
-        );
+        // ✅ ดึง user info แยก (กันกรณี user ถูกลบหรือ id null)
+        const userIds = orders.filter(o => o.user_id).map(o => o.user_id);
+        const usersRes = userIds.length
+            ? await client.query("SELECT id, first_name, last_name, email FROM users WHERE id = ANY($1)", [userIds])
+            : { rows: [] };
 
-        // 3) group items/payments by order_id
+        const userMap = {};
+        for (const u of usersRes.rows) {
+            userMap[u.id] = u;
+        }
+
+        // ✅ ดึง items + payments
+        const itemsRes = await client.query(`SELECT * FROM order_items WHERE order_id = ANY($1)`, [orderIds]);
+        const paymentsRes = await client.query(`
+            SELECT p.*, 
+                   to_char((p.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS created_at_local
+            FROM payments p 
+            WHERE order_id = ANY($1)
+            ORDER BY p.created_at DESC
+        `, [orderIds]);
+
         const itemsByOrder = {};
-        for (const it of itemsRes.rows) {
-            (itemsByOrder[it.order_id] ||= []).push(it);
-        }
+        for (const it of itemsRes.rows) (itemsByOrder[it.order_id] ||= []).push(it);
         const paymentsByOrder = {};
-        for (const p of paymentsRes.rows) {
-            (paymentsByOrder[p.order_id] ||= []).push(p);
-        }
+        for (const p of paymentsRes.rows) (paymentsByOrder[p.order_id] ||= []).push(p);
 
-        // 4) attach arrays and normalize customer/date fields
+        // ✅ รวมข้อมูลทั้งหมด
         for (const o of orders) {
             o.items = itemsByOrder[o.id] || [];
             o.payments = paymentsByOrder[o.id] || [];
-            o.customer = o.customer || (o.first_name || o.last_name) ? `${(o.first_name || "").trim()} ${(o.last_name || "").trim()}`.trim() : (o.email || `user#${o.user_id}`);
+            const usr = o.user_id ? userMap[o.user_id] : null;
+
+            o.customer = usr
+                ? `${usr.first_name || ''} ${usr.last_name || ''}`.trim()
+                : (o.email || `user#${o.user_id || 'guest'}`);
+
             o.date = o.created_at_local || o.created_at;
         }
 
-        // 5) simple stats (could also be a single aggregated SQL)
         const totalOrders = orders.length;
-        const totalRevenue = orders.reduce((s, x) => s + Number(x.total || 0), 0);
-        const uniqueCustomers = new Set(orders.map(o => o.user_id)).size;
+        const totalRevenue = orders.reduce((sum, x) => sum + Number(x.total || 0), 0);
+        const uniqueCustomers = new Set(orders.map(o => o.user_id || `guest-${o.id}`)).size;
 
-        res.json({ orders, stats: { totalOrders, totalRevenue, totalCustomers: uniqueCustomers } });
+        res.json({
+            orders,
+            stats: { totalOrders, totalRevenue, totalCustomers: uniqueCustomers }
+        });
+
     } catch (err) {
         console.error("Get all orders (admin) error:", err);
         res.status(500).json({ error: "Cannot fetch orders" });
@@ -205,6 +217,7 @@ router.get("/admin", authenticateToken, async (req, res) => {
         client.release();
     }
 });
+
 
 // เพิ่ม: GET /api/orders/:id - ดึงรายละเอียดคำสั่งซื้อ (ตรวจสิทธิ์)
 // เพิ่ม/แก้ route GET /:id ให้แน่ใจว่าส่งฟิลด์เดียวกับ list
@@ -264,7 +277,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
 router.put("/:id/status", authenticateToken, async (req, res) => {
     const id = Number(req.params.id);
     const { status } = req.body;
-    const allowed = ["pending", "confirmed", "shipping", "completed", "cancelled", "canceled", "refunded"];
+    const allowed = ['pending_payment', 'paid', 'preparing', 'ready_to_ship', 'shipping', 'completed', 'cancelled'];
     if (!allowed.includes((status || "").toString().toLowerCase())) {
         return res.status(400).json({ error: "Invalid status" });
     }
@@ -322,5 +335,148 @@ router.put("/:id/status", authenticateToken, async (req, res) => {
         client.release();
     }
 });
+
+// PUT /api/orders/:id/confirm-delivery - ลูกค้ายืนยันรับสินค้า
+router.put("/:id/confirm-delivery", authenticateToken, async (req, res) => {
+    const id = Number(req.params.id);
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        // ดึงข้อมูล order และตรวจสอบเจ้าของ
+        const orderRes = await client.query(
+            "SELECT * FROM orders WHERE id = $1 FOR UPDATE",
+            [id]
+        );
+
+        if (orderRes.rowCount === 0) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({ error: "ไม่พบคำสั่งซื้อ" });
+        }
+
+        const order = orderRes.rows[0];
+
+        // ตรวจสอบว่าเป็นเจ้าของ order
+        if (order.user_id !== req.user.id) {
+            await client.query("ROLLBACK");
+            return res.status(403).json({ error: "คุณไม่มีสิทธิ์ยืนยันคำสั่งซื้อนี้" });
+        }
+
+        // ตรวจสอบว่า status เป็น shipping
+        if (order.status !== "shipping") {
+            await client.query("ROLLBACK");
+            return res.status(400).json({
+                error: "ไม่สามารถยืนยันได้ สถานะคำสั่งซื้อต้องเป็น 'กำลังจัดส่ง'"
+            });
+        }
+
+        // อัปเดตเป็น completed
+        const updateRes = await client.query(
+            `UPDATE orders 
+       SET status = 'completed', 
+           delivered_at = NOW(), 
+           updated_at = NOW() 
+       WHERE id = $1 
+       RETURNING *`,
+            [id]
+        );
+
+        const updatedOrder = updateRes.rows[0];
+
+        // ดึงข้อมูลเพิ่มเติม
+        const itemsRes = await client.query(
+            "SELECT * FROM order_items WHERE order_id = $1",
+            [id]
+        );
+        const paymentsRes = await client.query(
+            "SELECT * FROM payments WHERE order_id = $1 ORDER BY created_at DESC",
+            [id]
+        );
+
+        updatedOrder.items = itemsRes.rows;
+        updatedOrder.payments = paymentsRes.rows;
+
+        await client.query("COMMIT");
+
+        res.json({
+            message: "ยืนยันรับสินค้าสำเร็จ",
+            order: updatedOrder
+        });
+
+    } catch (err) {
+        await client.query("ROLLBACK");
+        console.error("Confirm delivery error:", err);
+        res.status(500).json({ error: "ไม่สามารถยืนยันรับสินค้าได้" });
+    } finally {
+        client.release();
+    }
+});
+
+// PUT /api/orders/:id/cancel - ลูกค้ายกเลิกคำสั่งซื้อ + คืนสต็อก
+router.put("/:id/cancel", authenticateToken, async (req, res) => {
+    const id = Number(req.params.id);
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        // ดึงคำสั่งซื้อ
+        const orderRes = await client.query("SELECT * FROM orders WHERE id = $1 FOR UPDATE", [id]);
+        if (orderRes.rowCount === 0) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({ error: "ไม่พบคำสั่งซื้อ" });
+        }
+
+        const order = orderRes.rows[0];
+
+        // ตรวจสอบสิทธิ์: ต้องเป็นเจ้าของ หรือ admin
+        if (!(req.user.role === "admin" || req.user.id === order.user_id)) {
+            await client.query("ROLLBACK");
+            return res.status(403).json({ error: "คุณไม่มีสิทธิ์ยกเลิกคำสั่งซื้อนี้" });
+        }
+
+        // ตรวจสอบสถานะ
+        if (["completed", "cancelled", "shipping", "ready_to_ship"].includes(order.status)) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({ error: "ไม่สามารถยกเลิกคำสั่งซื้อนี้ได้" });
+        }
+
+        // ดึงสินค้าในคำสั่งซื้อ
+        const itemsRes = await client.query("SELECT * FROM order_items WHERE order_id = $1", [id]);
+        const items = itemsRes.rows;
+
+        // คืน stock
+        for (const it of items) {
+            await client.query(
+                "UPDATE products SET stock = stock + $1 WHERE id = $2",
+                [it.quantity, it.product_id]
+            );
+        }
+
+        // อัปเดตสถานะคำสั่งซื้อ
+        const upd = await client.query(
+            `UPDATE orders 
+             SET status = 'cancelled', updated_at = NOW() 
+             WHERE id = $1 
+             RETURNING *`,
+            [id]
+        );
+
+        await client.query("COMMIT");
+
+        res.json({
+            message: "ยกเลิกคำสั่งซื้อสำเร็จและคืนสต็อกแล้ว",
+            order: upd.rows[0]
+        });
+    } catch (err) {
+        await client.query("ROLLBACK");
+        console.error("Cancel order error:", err);
+        res.status(500).json({ error: "ไม่สามารถยกเลิกคำสั่งซื้อได้", details: err.message });
+    } finally {
+        client.release();
+    }
+});
+
 
 export default router;

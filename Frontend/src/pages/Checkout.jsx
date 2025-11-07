@@ -138,6 +138,8 @@ export default function Checkout() {
       setOrder(created)
       setErrorMsg("")
       window.scrollTo({ top: 0, behavior: "smooth" })
+
+      await clearCart()  // <-- เพิ่มฟังก์ชันนี้ที่นี่เพื่อเคลียร์ตะกร้า
     } catch (err) {
       console.error("create order error", err.response?.data || err.message)
       setErrorMsg(err.response?.data?.error || "ไม่สามารถสร้างคำสั่งซื้อได้")
