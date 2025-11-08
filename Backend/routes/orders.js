@@ -16,7 +16,7 @@ const toBangkok = (dt) => {
 // POST /api/orders - สร้างคำสั่งซื้อ (authenticated)
 router.post("/", authenticateToken, async (req, res) => {
     const userId = req.user.id;
-    const { items = [], shipping = {}, subtotal = 0, shipping_fee = 0, total = 0 } = req.body;
+    const { items = [], shipping = {}, courierMethod = "standard", subtotal = 0, shipping_fee = 0, total = 0 } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ error: "ไม่มีรายการสินค้า" });
@@ -45,14 +45,16 @@ router.post("/", authenticateToken, async (req, res) => {
          shipping_recipient_name, shipping_phone,
          shipping_address_line1, shipping_address_line2,
          shipping_subdistrict, shipping_district, shipping_province, shipping_postal_code,
+         courier_method,
          subtotal, shipping_fee, total, created_at
-       ) VALUES ($1,$2,'pending_payment',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NOW())
+       ) VALUES ($1,$2,'pending_payment',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW())
        RETURNING *`,
             [
                 userId, orderNumber,
                 shippingRecipientName, shippingPhone,
                 shippingLine1, shippingLine2,
                 shippingSubdistrict, shippingDistrict, shippingProvince, shippingPostalCode,
+                courierMethod, // เพิ่มวิธีการจัดส่ง
                 subtotal, shipping_fee, total
             ]
         );
@@ -69,7 +71,7 @@ router.post("/", authenticateToken, async (req, res) => {
             order.created_at_local = timeRes.rows[0].created_at_local;
             order.updated_at_local = timeRes.rows[0].updated_at_local;
 
-            // --- เพิ่ม: ดึงชื่อผู้ใช้และฟิลด์ date ให้ frontend ใช้ง่าย ---
+            // --- เพิ่ม: ดึงชื่อผู้ใช้และฟิลด์ date ให้ frontend ใช้งาน ---
             const userRes = await client.query("SELECT first_name, last_name FROM users WHERE id = $1", [order.user_id]);
             const usr = userRes.rows[0];
             order.customer = usr ? `${usr.first_name} ${usr.last_name}` : `user#${order.user_id}`;

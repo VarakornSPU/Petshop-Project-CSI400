@@ -30,6 +30,18 @@ export default function MyOrders() {
         }
     }
 
+    // ฟังก์ชันแสดงชื่อขนส่งเป็นภาษาไทย
+    const getCourierName = (courierMethod) => {
+        const courierMap = {
+            thailand_post: "ไปรษณีย์ไทย",
+            flash_express: "Flash Express",
+            jnt_express: "J&T Express",
+            rider: "ไรเดอร์",
+            standard: "มาตรฐาน",
+        }
+        return courierMap[courierMethod] || courierMethod || "ไม่ระบุ"
+    }
+
     // ฟังก์ชันตรวจสอบสถานะการชำระเงินที่ถูกต้อง
     const checkPaymentStatus = (order) => {
         // ถ้าคำสั่งซื้อนี้ถูกยกเลิกแล้ว ให้คืน false ทันที (ไม่ต้องรอชำระ)
@@ -267,6 +279,10 @@ export default function MyOrders() {
                                 </span>
                             </div>
                             <div className="order-info-item">
+                                <span className="order-info-label">ขนส่ง</span>
+                                <span className="order-info-value">{getCourierName(o.courier_method)}</span>
+                            </div>
+                            <div className="order-info-item">
                                 <span className="order-info-label">สถานะการชำระเงิน</span>
                                 <span
                                     className="order-info-value"
@@ -309,6 +325,12 @@ export default function MyOrders() {
                                             <span className="order-item-subtotal">฿{Number(it.subtotal).toFixed(2)}</span>
                                         </li>
                                     ))}
+                                    {o.shipping_fee > 0 && (
+                                        <li className="order-item" style={{ borderTop: "1px solid #eee", marginTop: "8px", paddingTop: "8px", fontWeight: "600" }}>
+                                            <span className="order-item-name">ค่าจัดส่ง</span>
+                                            <span className="order-item-subtotal">฿{Number(o.shipping_fee).toFixed(2)}</span>
+                                        </li>
+                                    )}
                                 </ul>
                             </div>
                         </details>

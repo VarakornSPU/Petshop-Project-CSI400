@@ -34,7 +34,7 @@ export default function Admin() {
     Promise.all([fetchProducts(), fetchOrders()]).finally(() => setLoading(false));
   }, [token]);
 
-    // ✅ Auto Refresh ทุกๆ 5 วินาที เมื่ออยู่ที่ Tab Products
+  // ✅ Auto Refresh ทุกๆ 5 วินาที เมื่ออยู่ที่ Tab Products
   useEffect(() => {
     if (activeTab !== "products") return;
 
@@ -661,6 +661,7 @@ export default function Admin() {
                   <th>ลูกค้า</th>
                   <th>วันที่</th>
                   <th>ยอดรวม</th>
+                  <th>ขนส่ง</th>
                   <th>สถานะ</th>
                   <th>การจัดการ</th>
                 </tr>
@@ -672,6 +673,19 @@ export default function Admin() {
                     <td>{getCustomerName(order)}</td>
                     <td>{formatOrderDate(order)}</td>
                     <td>฿{order.total.toLocaleString()}</td>
+                    <td>
+                      {/* ✅ แสดงชื่อขนส่งเป็นภาษาไทย */}
+                      {(() => {
+                        const courierMap = {
+                          thailand_post: "ไปรษณีย์ไทย",
+                          flash_express: "Flash Express",
+                          jnt_express: "J&T Express",
+                          rider: "ไรเดอร์",
+                          standard: "มาตรฐาน",
+                        };
+                        return courierMap[order.courier_method] || "ไม่ระบุ";
+                      })()}
+                    </td>
                     <td>
                       {(() => {
                         const s = getStatusLabel(order.status);

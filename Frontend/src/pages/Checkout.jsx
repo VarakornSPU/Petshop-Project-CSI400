@@ -12,6 +12,7 @@ export default function Checkout() {
     const [loading, setLoading] = useState(false)
     const [errorMsg, setErrorMsg] = useState("")
     const [paymentMethod, setPaymentMethod] = useState("mock")
+    const [courierMethod, setCourierMethod] = useState("standard")
 
     // addresses
     const [savedAddresses, setSavedAddresses] = useState([])
@@ -34,7 +35,15 @@ export default function Checkout() {
 
     const navigate = useNavigate()
     const subtotal = cartItems.reduce((sum, i) => sum + Number(i.price || 0) * Number(i.quantity || 0), 0)
-    const shippingFee = 0
+
+    // คำนวณค่าจัดส่งตามเงื่อนไข
+    const calculateShippingFee = () => {
+        if (courierMethod === "rider") return 0 // ไรเดอร์ - ให้ลูกค้าจ่ายเองปลายทาง
+        if (subtotal >= 300) return 0 // สั่งซื้อเกิน 300 บาท ส่งฟรี
+        return 35 // ขนส่งอื่นๆ 35 บาท
+    }
+
+    const shippingFee = calculateShippingFee()
     const total = subtotal + shippingFee
     const canCreateOrder =
         isAuthenticated &&
@@ -126,6 +135,7 @@ export default function Checkout() {
                     subtotal: Number(i.price) * Number(i.quantity),
                 })),
                 shipping: finalShipping,
+                courierMethod, // ส่งวิธีการจัดส่ง
                 subtotal,
                 shipping_fee: shippingFee,
                 total,
@@ -409,6 +419,82 @@ export default function Checkout() {
                                 </div>
                             </form>
                         )}
+                    </section>
+
+                    {/* Courier Method Section */}
+                    <section className="checkout-section">
+                        <h3 className="section-title">เลือกขนส่ง</h3>
+                        <div className="courier-select-group">
+                            <label className="courier-option">
+                                <input
+                                    type="radio"
+                                    name="courier"
+                                    value="thailand_post"
+                                    checked={courierMethod === "thailand_post"}
+                                    onChange={(e) => setCourierMethod(e.target.value)}
+                                />
+                                <div className="courier-info">
+                                    <span className="courier-name">ไปรษณีย์ไทย</span>
+                                    <span className="courier-desc">รอ 2-3 วัน • {subtotal >= 300 ? 'ฟรี' : '฿35'}</span>
+                                </div>
+                            </label>
+
+                            <label className="courier-option">
+                                <input
+                                    type="radio"
+                                    name="courier"
+                                    value="flash_express"
+                                    checked={courierMethod === "flash_express"}
+                                    onChange={(e) => setCourierMethod(e.target.value)}
+                                />
+                                <div className="courier-info">
+                                    <span className="courier-name">Flash Express</span>
+                                    <span className="courier-desc">รอ 2-3 วัน • {subtotal >= 300 ? 'ฟรี' : '฿35'}</span>
+                                </div>
+                            </label>
+
+                            <label className="courier-option">
+                                <input
+                                    type="radio"
+                                    name="courier"
+                                    value="jnt_express"
+                                    checked={courierMethod === "jnt_express"}
+                                    onChange={(e) => setCourierMethod(e.target.value)}
+                                />
+                                <div className="courier-info">
+                                    <span className="courier-name">J&T Express</span>
+                                    <span className="courier-desc">รอ 2-3 วัน • {subtotal >= 300 ? 'ฟรี' : '฿35'}</span>
+                                </div>
+                            </label>
+
+                            <label className="courier-option">
+                                <input
+                                    type="radio"
+                                    name="courier"
+                                    value="rider"
+                                    checked={courierMethod === "rider"}
+                                    onChange={(e) => setCourierMethod(e.target.value)}
+                                />
+                                <div className="courier-info">
+                                    <span className="courier-name">ไรเดอร์</span>
+                                    <span className="courier-desc">ภายใน 1 ชั่วโมง • (ลูกค้าจ่ายค่าจัดส่งปลายทาง คิดตามระยะทางจริง)</span>
+                                </div>
+                            </label>
+
+                            <label className="courier-option">
+                                <input
+                                    type="radio"
+                                    name="courier"
+                                    value="standard"
+                                    checked={courierMethod === "standard"}
+                                    onChange={(e) => setCourierMethod(e.target.value)}
+                                />
+                                <div className="courier-info">
+                                    <span className="courier-name">มาตรฐาน</span>
+                                    <span className="courier-desc">ขนส่งอื่นๆ • {subtotal >= 300 ? 'ฟรี' : '฿35'}</span>
+                                </div>
+                            </label>
+                        </div>
                     </section>
 
                     {/* Payment Method Section */}
