@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../style/Auth.css';
+import '../style/GoogleAuth.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -42,6 +43,10 @@ const Login = () => {
     if (result.success) {
       setMessage(result.message);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   return (
@@ -162,6 +167,20 @@ const Login = () => {
             )}
           </button>
         </form>
+
+        {/* Google Login */}
+        <div className="auth-divider">
+          <span>หรือ</span>
+        </div>
+        
+        <button 
+          onClick={handleGoogleLogin}
+          className="btn-google"
+          type="button"
+        >
+          <img src="/google.svg" alt="Google" className="google-icon" />
+          <span>เข้าสู่ระบบด้วย Google</span>
+        </button>
 
         {/* Footer */}
         <div className="auth-footer">

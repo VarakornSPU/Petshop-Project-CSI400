@@ -2,6 +2,7 @@
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import CartModal from "./components/CartModal"; 
@@ -28,9 +29,10 @@ import MyOrders from "./pages/MyOrders";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Header />
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <AuthProvider>
+        <CartProvider>
+          <Header />
         <CartModal /> 
         <Notification /> 
         <main className="pt-20">
@@ -124,5 +126,6 @@ export default function App() {
         <Footer />
       </CartProvider>
     </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../style/Auth.css';
+import '../style/GoogleAuth.css';
 
 const Register = () => {
   const [step, setStep] = useState(1); // 1 = Account Info, 2 = Address Info
@@ -44,6 +45,10 @@ const Register = () => {
   useEffect(() => {
     clearError();
   }, [clearError]);
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  };
 
   useEffect(() => {
     const calculateStrength = (password) => {
@@ -389,6 +394,23 @@ const Register = () => {
               </button>
             </div>
           </form>
+        )}
+
+        {step === 1 && (
+          <>
+            <div className="auth-divider">
+              <span>หรือ</span>
+            </div>
+            
+            <button 
+              onClick={handleGoogleLogin}
+              className="btn-google"
+              type="button"
+            >
+              <img src="/google.svg" alt="Google" className="google-icon" />
+              <span>สมัครสมาชิกด้วย Google</span>
+            </button>
+          </>
         )}
 
         <div className="auth-footer">

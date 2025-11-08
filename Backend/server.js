@@ -7,6 +7,7 @@ import pool from './config/db.js';
 
 // Routes
 import authRoutes from "./routes/auth.js";
+import googleAuthRoutes from "./routes/googleAuth.js";
 import addressRoutes from "./routes/address.js";
 import profileRoutes from "./routes/profile.js";
 import adminUsersRoutes from "./routes/adminUsers.js";
@@ -16,7 +17,22 @@ import cartRouter from "./routes/cart.js";
 import ordersRoutes from './routes/orders.js';
 import paymentsRoutes from './routes/payments.js';
 
+// Passport Configuration
+import passport from './config/passport.js';
+
 dotenv.config();
+
+// Diagnostic: print presence of Google OAuth env values (masked where appropriate)
+try {
+  const gid = process.env.GOOGLE_CLIENT_ID || '';
+  const gcb = process.env.GOOGLE_CALLBACK_URL || '';
+  const gsec = process.env.GOOGLE_CLIENT_SECRET || '';
+  console.log(`GOOGLE_CLIENT_ID: ${gid ? gid : '[missing]'}`);
+  console.log(`GOOGLE_CALLBACK_URL: ${gcb ? gcb : '[missing]'}`);
+  console.log(`GOOGLE_CLIENT_SECRET: ${gsec ? '[present length=' + gsec.length + ']' : '[missing]'}`);
+} catch (e) {
+  console.error('Error printing Google env diagnostics:', e);
+}
 
 const app = express();
 
@@ -27,6 +43,15 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Initialize Passport
+app.use(passport.initialize());
+
+// Routes
+app.use('/auth', googleAuthRoutes);
+
+// Avoid favicon 404 noise (serve empty response)
+app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 // Static files
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

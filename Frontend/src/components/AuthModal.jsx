@@ -1,6 +1,7 @@
 // Frontend/src/components/AuthModal.jsx
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 
 export default function AuthModal({ isOpen, onClose }) {
   if (!isOpen) return null;
@@ -61,6 +62,14 @@ export default function AuthModal({ isOpen, onClose }) {
             >
               สมัครสมาชิกใหม่
             </Link>
+
+            <button
+              onClick={() => window.location.href = `${process.env.REACT_APP_API_URL}/auth/google`}
+              className="flex items-center justify-center w-full border-2 border-gray-300 bg-white text-gray-700 py-3 px-6 rounded-full font-medium hover:border-blue-300 hover:text-blue-600 transition-all duration-300"
+            >
+              <img src="/google-icon.svg" alt="Google" className="w-5 h-5 mr-2" />
+              เข้าสู่ระบบด้วย Google
+            </button>
           </div>
 
           {/* Footer */}

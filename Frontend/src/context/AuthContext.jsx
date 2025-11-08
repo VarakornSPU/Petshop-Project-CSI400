@@ -57,10 +57,35 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const checkAuthStatus = async () => {
+      // If redirected from OAuth callback, grab token from URL and store it
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const tokenFromUrl = params.get('token');
+        const authError = params.get('authError');
+        if (authError) {
+          console.warn('Auth error from OAuth callback:', authError);
+          // Remove authError from URL
+          params.delete('authError');
+          const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
+          window.history.replaceState({}, document.title, newUrl);
+        }
+        if (tokenFromUrl) {
+          // Save token to localStorage so the normal verification flow can pick it up
+          localStorage.setItem('authToken', tokenFromUrl);
+          // Remove token from URL to keep things clean
+          params.delete('token');
+          const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
+          window.history.replaceState({}, document.title, newUrl);
+        }
+
+      } catch (err) {
+        console.error('Error processing OAuth redirect params:', err);
+      }
+
       const token = localStorage.getItem('authToken');
       const savedUser = localStorage.getItem('user');
 
-      if (token && savedUser) {
+      if (token) {
         try {
           const response = await authAPI.verifyToken();
           
@@ -71,10 +96,14 @@ export const AuthProvider = ({ children }) => {
               token: token,
             },
           });
+          // Persist verified user to localStorage if it wasn't already saved
+          if (!savedUser) {
+            localStorage.setItem('user', JSON.stringify(response.user));
+          }
           console.log('User data:', response.user);
-          console.log('✅ Auth verified successfully');
+          console.log('Auth verified successfully');
         } catch (error) {
-          console.error('❌ Token verification failed:', error);
+          console.error('Token verification failed:', error);
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
           dispatch({ type: 'LOGOUT' });
@@ -93,9 +122,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login(credentials);
 
-      // console.log('🔐 Login Response:', response);
+      // console.log('Login Response:', response);
 
-      // ✅ เก็บ Token และ User
+      // เก็บ Token และ User
       const token = response.accessToken || response.token;
       
       localStorage.setItem('authToken', token);
@@ -112,7 +141,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, message: response.message };
     } catch (error) {
-      console.error('❌ Login error:', error);
+      console.error(' Login error:', error);
       const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
       dispatch({
         type: 'LOGIN_FAILURE',
@@ -127,9 +156,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.register(userData);
 
-      console.log('📝 Register Response:', response);
+      console.log(' Register Response:', response);
 
-      // ✅ เก็บ Token และ User
+      //  เก็บ Token และ User
       const token = response.accessToken || response.token;
       
       localStorage.setItem('authToken', token);
@@ -145,7 +174,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, message: response.message };
     } catch (error) {
-      console.error('❌ Register error:', error);
+      console.error(' Register error:', error);
       const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก';
       dispatch({
         type: 'LOGIN_FAILURE',
@@ -156,7 +185,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
-    console.log('🚪 Logging out...');
+    console.log(' Logging out...');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     dispatch({ type: 'LOGOUT' });

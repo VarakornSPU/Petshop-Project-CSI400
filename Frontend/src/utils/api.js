@@ -1,7 +1,19 @@
 // Frontend/src/utils/api.js
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Normalize API base URL so frontend calls always target the backend '/api' prefix.
+// If VITE_API_URL is set to a host (e.g. http://localhost:3001) we'll append '/api'.
+// If it's already set to include '/api', keep it as-is.
+const rawApiUrl = import.meta.env.VITE_API_URL;
+let API_BASE_URL = '';
+if (rawApiUrl) {
+  API_BASE_URL = rawApiUrl.replace(/\/+$/, ''); // remove trailing slash
+  if (!API_BASE_URL.endsWith('/api')) {
+    API_BASE_URL = API_BASE_URL + '/api';
+  }
+} else {
+  API_BASE_URL = 'http://localhost:3001/api';
+}
 
 // Create axios instance
 const api = axios.create({
@@ -11,41 +23,41 @@ const api = axios.create({
   },
 });
 
-// ✅ REQUEST INTERCEPTOR - Add token to every request
+//  REQUEST INTERCEPTOR - Add token to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
     
-    console.log('📤 API Request:', config.method?.toUpperCase(), config.url);
-    console.log('🔑 Token:', token ? 'EXISTS (' + token.substring(0, 20) + '...)' : 'NOT FOUND');
+    console.log(' API Request:', config.method?.toUpperCase(), config.url);
+    console.log(' Token:', token ? 'EXISTS (' + token.substring(0, 20) + '...)' : 'NOT FOUND');
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('✅ Token added to header');
+      console.log(' Token added to header');
     } else {
-      console.warn('⚠️ No token found in localStorage');
+      console.warn(' No token found in localStorage');
     }
     
     return config;
   },
   (error) => {
-    console.error('❌ Request Interceptor Error:', error);
+    console.error(' Request Interceptor Error:', error);
     return Promise.reject(error);
   }
 );
 
-// ✅ RESPONSE INTERCEPTOR - Handle errors
+//  RESPONSE INTERCEPTOR - Handle errors
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response:', response.status, response.config.url);
+    console.log(' API Response:', response.status, response.config.url);
     return response;
   },
   (error) => {
-    console.error('❌ API Error:', error.response?.status, error.config?.url);
+    console.error(' API Error:', error.response?.status, error.config?.url);
     console.error('Error Details:', error.response?.data);
     
     if (error.response?.status === 401) {
-      console.error('🚫 Unauthorized - Token invalid or expired');
+      console.error(' Unauthorized - Token invalid or expired');
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       
@@ -56,16 +68,14 @@ api.interceptors.response.use(
     }
     
     if (error.response?.status === 403) {
-      console.error('🚫 Forbidden - Insufficient permissions');
+      console.error(' Forbidden - Insufficient permissions');
     }
     
     return Promise.reject(error);
   }
 );
 
-// ==========================================
-// ✅ AUTH API
-// ==========================================
+//  AUTH API
 export const authAPI = {
   login: async (credentials) => {
     const response = await api.post('/auth/login', credentials);
@@ -106,9 +116,7 @@ export const authAPI = {
   }
 };
 
-// ==========================================
-// ✅ ADMIN API
-// ==========================================
+// ADMIN API
 export const adminAPI = {
   getUsers: async (params) => {
     const response = await api.get('/admin/users', { params });
@@ -146,50 +154,46 @@ export const adminAPI = {
   }
 };
 
-// ==========================================
-// ✅ ADDRESS API
-// ==========================================
+//  ADDRESS API
 export const addressAPI = {
   getAddresses: async () => {
-    console.log('🏠 Fetching addresses...');
+    console.log(' Fetching addresses...');
     const response = await api.get('/addresses');
     return response.data;
   },
   
   createAddress: async (addressData) => {
-    console.log('🏠 Creating address...', addressData);
+    console.log(' Creating address...', addressData);
     const response = await api.post('/addresses', addressData);
     return response.data;
   },
   
   updateAddress: async (id, addressData) => {
-    console.log('🏠 Updating address...', id, addressData);
+    console.log(' Updating address...', id, addressData);
     const response = await api.put(`/addresses/${id}`, addressData);
     return response.data;
   },
   
   deleteAddress: async (id) => {
-    console.log('🏠 Deleting address...', id);
+    console.log(' Deleting address...', id);
     const response = await api.delete(`/addresses/${id}`);
     return response.data;
   },
   
   setDefaultAddress: async (id) => {
-    console.log('🏠 Setting default address...', id);
+    console.log(' Setting default address...', id);
     const response = await api.put(`/addresses/${id}/default`);
     return response.data;
   },
   
   getAddressUsage: async (id) => {
-    console.log('🏠 Getting address usage...', id);
+    console.log(' Getting address usage...', id);
     const response = await api.get(`/addresses/${id}/usage`);
     return response.data;
   }
 };
 
-// ==========================================
-// ✅ USER ACCOUNT API
-// ==========================================
+//  USER ACCOUNT API
 export const userAccountAPI = {
   requestDelete: async (password, reason) => {
     const response = await api.post('/user-account/delete-request', { password, reason });
@@ -202,30 +206,28 @@ export const userAccountAPI = {
   }
 };
 
-// ==========================================
-// ✅ ADMIN ADDRESS API
-// ==========================================
+//  ADMIN ADDRESS API
 export const adminAddressAPI = {
   getAllAddresses: async (params) => {
-    console.log('📍 Admin: Fetching all addresses...');
+    console.log(' Admin: Fetching all addresses...');
     const response = await api.get('/admin/addresses', { params });
     return response.data;
   },
   
   getUserAddresses: async (userId) => {
-    console.log('📍 Admin: Fetching user addresses...', userId);
+    console.log(' Admin: Fetching user addresses...', userId);
     const response = await api.get(`/admin/addresses/user/${userId}`);
     return response.data;
   },
   
   getStats: async () => {
-    console.log('📊 Admin: Fetching address stats...');
+    console.log(' Admin: Fetching address stats...');
     const response = await api.get('/admin/addresses/stats');
     return response.data;
   },
   
   forceDeleteAddress: async (id) => {
-    console.log('🗑️ Admin: Force deleting address...', id);
+    console.log(' Admin: Force deleting address...', id);
     const response = await api.delete(`/admin/addresses/${id}/force`);
     return response.data;
   }
