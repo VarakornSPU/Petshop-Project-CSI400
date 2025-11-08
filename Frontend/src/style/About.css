@@ -1,0 +1,172 @@
+/* About Page Styles */
+.about-page {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Hero Section */
+.about-hero {
+  background: rgba(245, 235, 220, 0.95);
+  padding: 6rem 1.5rem 4rem;
+  text-align: center;
+  color: black;
+}
+
+.about-hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-hero-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.about-hero-subtitle {
+  font-size: 1.25rem;
+  opacity: 0.95;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Main Content */
+.about-content {
+  padding: 4rem 1.5rem;
+  background-color: #fafafa;
+}
+
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Story Section */
+.about-story {
+  background: white;
+  padding: 3rem;
+  border-radius: 12px;
+  margin-bottom: 3rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.about-section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+  text-align: center;
+}
+
+.about-text {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: #4a5568;
+  margin-bottom: 1.5rem;
+  text-align: justify;
+}
+
+.about-text:last-child {
+  margin-bottom: 0;
+}
+
+/* Values Section */
+.about-values {
+  margin-bottom: 3rem;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.value-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.value-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.value-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.value-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #2d3748;
+}
+
+.value-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #718096;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .about-hero {
+    padding: 4rem 1rem 3rem;
+  }
+
+  .about-hero-title {
+    font-size: 2rem;
+  }
+
+  .about-hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .about-story,
+  .about-mission {
+    padding: 2rem 1.5rem;
+  }
+
+  .about-section-title {
+    font-size: 1.75rem;
+  }
+
+  .about-text,
+  .mission-text p {
+    font-size: 1rem;
+  }
+
+  .values-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .value-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-content {
+    padding: 2rem 1rem;
+  }
+
+  .about-hero-title {
+    font-size: 1.75rem;
+  }
+
+  .value-icon {
+    font-size: 2.5rem;
+  }
+
+  .value-title {
+    font-size: 1.25rem;
+  }
+}
