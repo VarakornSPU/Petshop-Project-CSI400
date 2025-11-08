@@ -6,9 +6,7 @@ import pool from '../config/db.js';
 
 const router = express.Router();
 
-// ==========================================
-// ✅ VALIDATION RULES
-// ==========================================
+//  VALIDATION RULES
 const addressValidationRules = [
   body('recipientName').trim().notEmpty().withMessage('กรุณากรอกชื่อผู้รับ'),
   body('phone').trim().notEmpty().withMessage('กรุณากรอกเบอร์โทรศัพท์'),
@@ -21,9 +19,7 @@ const addressValidationRules = [
   body('isDefault').isBoolean().optional()
 ];
 
-// ==========================================
-// ✅ GET ALL ADDRESSES
-// ==========================================
+// GET ALL ADDRESSES
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
@@ -43,9 +39,7 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// ==========================================
-// ✅ CREATE NEW ADDRESS
-// ==========================================
+//  CREATE NEW ADDRESS
 router.post('/', authenticateToken, addressValidationRules, async (req, res) => {
   const client = await pool.connect();
   
@@ -94,9 +88,7 @@ router.post('/', authenticateToken, addressValidationRules, async (req, res) => 
   }
 });
 
-// ==========================================
-// ✅ UPDATE ADDRESS
-// ==========================================
+//  UPDATE ADDRESS
 router.put('/:id', authenticateToken, addressValidationRules, async (req, res) => {
   const client = await pool.connect();
   
@@ -157,9 +149,7 @@ router.put('/:id', authenticateToken, addressValidationRules, async (req, res) =
   }
 });
 
-// ==========================================
-// ✅ SET DEFAULT ADDRESS
-// ==========================================
+// SET DEFAULT ADDRESS
 router.put('/:id/default', authenticateToken, async (req, res) => {
   const client = await pool.connect();
   
@@ -203,9 +193,7 @@ router.put('/:id/default', authenticateToken, async (req, res) => {
   }
 });
 
-// ==========================================
-// ✅ DELETE ADDRESS (with Active Order Check)
-// ==========================================
+//  DELETE ADDRESS (with Active Order Check)
 router.delete('/:id', authenticateToken, async (req, res) => {
   const client = await pool.connect();
   
@@ -226,16 +214,16 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     // ✅ CHECK IF ADDRESS IS USED IN ACTIVE ORDERS
+    // Only check orders by comparing the stored shipping address snapshot
+    // to the address being deleted. The project does not include a
+    // separate order_addresses join table in the schema, so referencing
+    // it caused SQL errors on Windows (table not found). Keep the check
+    // to the order snapshot columns which are guaranteed to exist.
     const activeOrdersResult = await client.query(
       `SELECT COUNT(*) as count FROM orders 
        WHERE user_id = $1 
        AND status IN ('pending', 'confirmed', 'processing', 'shipping')
-       AND (
-         shipping_address_line1 = (SELECT address_line1 FROM addresses WHERE id = $2)
-         OR id IN (
-           SELECT order_id FROM order_addresses WHERE address_id = $2
-         )
-       )`,
+       AND shipping_address_line1 = (SELECT address_line1 FROM addresses WHERE id = $2)`,
       [req.user.id, id]
     );
 
@@ -270,9 +258,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// ==========================================
-// ✅ GET ADDRESS USAGE INFO (for UI)
-// ==========================================
+//  GET ADDRESS USAGE INFO (for UI)
 router.get('/:id/usage', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
