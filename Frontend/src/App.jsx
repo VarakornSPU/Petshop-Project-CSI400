@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import AdminUsers from "./pages/AdminUsers";
 import Checkout from "./pages/Checkout";
 import MyOrders from "./pages/MyOrders";
+import ProductDetail from "./pages/ProductDetail";
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/products" element={<Products />} />
             <Route path="/productslist" element={<ProductsList />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
             
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />

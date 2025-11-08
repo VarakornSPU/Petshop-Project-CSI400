@@ -19,6 +19,9 @@ export default function CartModal() {
 
   console.log('Cart is open!');
 
+  // ✅ Placeholder SVG สำหรับกรณีรูปโหลดไม่ได้
+  const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect fill='%23ddd' width='80' height='80'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='12' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+
   return (
     <div className="cart-modal-overlay">
       <div className="cart-backdrop" onClick={() => setIsCartOpen(false)} />
@@ -77,39 +80,55 @@ export default function CartModal() {
             </div>
           ) : (
             <div className="cart-items">
-              {cartItems.map((item) => (
-                <div key={item.id} className="cart-item">
-                  <img src={item.image || "/placeholder.svg"} alt={item.name} className="cart-item-image" />
-                  <div className="cart-item-details">
-                    <h4 className="cart-item-name">{item.name}</h4>
-                    <p className="cart-item-price">฿{item.price?.toLocaleString()}</p>
-                  </div>
-                  
-                  <div className="quantity-controls">
-                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="quantity-btn">
+              {cartItems.map((item) => {
+                console.log("🛒 Cart item:", item.name || item.product_name, "| imageUrl:", item.imageUrl);
+                
+                return (
+                  <div key={item.id} className="cart-item">
+                    {/* ✅ ใช้ imageUrl ที่เตรียมไว้แล้วใน Context */}
+                    <img 
+                      src={item.imageUrl || placeholderImage} 
+                      alt={item.name || item.product_name || "สินค้า"} 
+                      className="cart-item-image"
+                      onError={(e) => {
+                        console.error("❌ Cart image failed:", item.imageUrl);
+                        e.target.src = placeholderImage;
+                      }}
+                      onLoad={() => {
+                        console.log("✅ Cart image loaded:", item.imageUrl);
+                      }}
+                    />
+                    <div className="cart-item-details">
+                      <h4 className="cart-item-name">{item.name || item.product_name}</h4>
+                      <p className="cart-item-price">฿{item.price?.toLocaleString()}</p>
+                    </div>
+                    
+                    <div className="quantity-controls">
+                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="quantity-btn">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                        </svg>
+                      </button>
+                      <span className="quantity-value">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="quantity-btn">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="cart-item-total">
+                      ฿{(item.price * item.quantity).toLocaleString()}
+                    </div>
+
+                    <button onClick={() => removeFromCart(item.id)} className="cart-item-remove">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
-                    <span className="quantity-value">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="quantity-btn">
-                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                    </button>
                   </div>
-
-                  <div className="cart-item-total">
-                    ฿{(item.price * item.quantity).toLocaleString()}
-                  </div>
-
-                  <button onClick={() => removeFromCart(item.id)} className="cart-item-remove">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

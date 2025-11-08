@@ -16,6 +16,7 @@ import adminProductRoutes from './routes/adminProducts.js';
 import cartRouter from "./routes/cart.js";
 import ordersRoutes from './routes/orders.js';
 import paymentsRoutes from './routes/payments.js';
+import productReviewsRoutes from './routes/productReviews.js';
 
 // Passport Configuration
 import passport from './config/passport.js';
@@ -112,11 +113,35 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/admin/users", adminUsersRoutes);
 app.use("/api/admin/products", adminProductRoutes);
 
+// Reviews
+app.use("/api/products", productReviewsRoutes);
+
 app.use("/cart", cartRouter);
 
 app.get("/api/products", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM products ORDER BY created_at DESC");
+    const { category } = req.query;
+    
+    console.log("📦 GET /api/products - category:", category);
+    
+    let query = "SELECT * FROM products";
+    let params = [];
+    
+    // ✅ ถ้ามีการกรอง category
+    if (category && category !== "all") {
+      query += " WHERE category = $1";
+      params.push(category);
+    }
+    
+    query += " ORDER BY created_at DESC";
+    
+    console.log("🔍 SQL Query:", query);
+    console.log("📝 Params:", params);
+    
+    const result = await pool.query(query, params);
+    
+    console.log(`✅ Found ${result.rows.length} products`);
+    
     res.json(result.rows);
   } catch (err) {
     console.error('Get products error:', err);

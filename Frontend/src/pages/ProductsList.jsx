@@ -10,28 +10,26 @@ export default function ProductsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // อ่านค่าหมวดหมู่จาก query string (เช่น ?category=food)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const category = params.get("category") || "all";
     setFilter(category);
   }, [location.search]);
 
-  // ดึงข้อมูลสินค้าจาก backend
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const url = filter === "all" 
+        const url = filter === "all"
           ? "http://localhost:3001/api/products"
           : `http://localhost:3001/api/products?category=${filter}`;
 
         console.log("🔍 Fetching from:", url);
 
         const res = await fetch(url);
-        
+
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
@@ -39,7 +37,6 @@ export default function ProductsList() {
         const data = await res.json();
         console.log("✅ Data received:", data);
 
-        // ✅ รองรับทั้ง array และ object response
         if (Array.isArray(data)) {
           setProducts(data);
         } else if (data.products && Array.isArray(data.products)) {
@@ -86,25 +83,69 @@ export default function ProductsList() {
 
 function ProductCard({ product }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // ✅ แปลงค่า images ให้เป็น array เสมอ
+  let images = [];
+  const rawImages = product.images;
+
+  console.log("🔍 Product:", product.name);
+  console.log("📦 Raw images:", rawImages);
+  console.log("📦 Type of rawImages:", typeof rawImages);
+
+  if (Array.isArray(rawImages)) {
+    images = rawImages;
+  } else if (typeof rawImages === "string") {
+    try {
+      const parsed = JSON.parse(rawImages);
+      if (Array.isArray(parsed)) {
+        images = parsed;
+      } else if (typeof parsed === "string") {
+        images = [parsed];
+      }
+    } catch {
+      if (rawImages.startsWith("{") && rawImages.endsWith("}")) {
+        images = rawImages
+          .slice(1, -1)
+          .split(",")
+          .map((s) => s.trim().replace(/^"|"$/g, ""));
+      } else if (rawImages.trim() !== "") {
+        images = [rawImages.trim()];
+      }
+    }
+  }
+
+  // ถ้าไม่มีรูป ใช้ placeholder SVG
+  if (!images || images.length === 0) {
+    images = ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E"];
+  }
+
+  console.log("✅ Parsed images array:", images);
+
+  const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+
+  // ✅ ดึงรูปปัจจุบัน
+  const currentImage = images[currentImageIndex] || images[0] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
   
-  const images = Array.isArray(product.images) && product.images.length > 0
-    ? product.images
-    : product.image 
-    ? [product.image]
-    : ["/placeholder.png"];
+  console.log("🖼️ Current image raw:", currentImage);
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  };
+  // ✅ สร้าง URL ที่ถูกต้อง
+  let imageUrl;
+  if (currentImage.startsWith("http://") || currentImage.startsWith("https://")) {
+    // เป็น URL เต็มอยู่แล้ว
+    imageUrl = currentImage;
+  } else if (currentImage.startsWith("/uploads/")) {
+    // มี /uploads/ อยู่แล้ว
+    imageUrl = `http://localhost:3001${currentImage}`;
+  } else if (currentImage.startsWith("/")) {
+    // ขึ้นต้นด้วย / แต่ไม่ใช่ /uploads/
+    imageUrl = `http://localhost:3001${currentImage}`;
+  } else {
+    // ชื่อไฟล์เฉยๆ
+    imageUrl = `http://localhost:3001/uploads/${currentImage}`;
+  }
 
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
-
-  const currentImage = images[currentImageIndex];
-  const imageUrl = currentImage.startsWith("http") || currentImage.startsWith("/placeholder")
-    ? currentImage
-    : `http://localhost:3001${currentImage}`;
+  console.log("🎯 Final image URL:", imageUrl);
 
   return (
     <div className="product-card">
@@ -114,7 +155,11 @@ function ProductCard({ product }) {
           alt={product.name}
           className="product-image"
           onError={(e) => {
-            e.target.src = "/placeholder.png";
+            console.error("❌ Image failed to load:", imageUrl);
+            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+          }}
+          onLoad={() => {
+            console.log("✅ Image loaded successfully:", imageUrl);
           }}
         />
 
@@ -138,7 +183,6 @@ function ProductCard({ product }) {
           </>
         )}
 
-        {/* เช็คว่า stock มีค่า */}
         {product.stock !== undefined && product.stock !== null && product.stock <= 5 && product.stock > 0 && (
           <span className="badge badge-warning">เหลือน้อย</span>
         )}
@@ -149,12 +193,11 @@ function ProductCard({ product }) {
 
       <div className="product-details">
         <h3 className="product-name">{product.name}</h3>
-        
+
         {product.description && (
           <p className="description">{product.description}</p>
         )}
 
-        {/* เช็คว่า rating เป็น number */}
         {product.rating && typeof product.rating === 'number' && product.rating > 0 && (
           <div className="rating">
             <span className="stars">{"⭐".repeat(Math.round(product.rating))}</span>
