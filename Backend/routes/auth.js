@@ -3,7 +3,8 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import rateLimit from 'express-rate-limit';
 import pool from '../config/db.js';
-import { hashPassword, comparePassword, generateResetToken, validatePassword } from '../utils/password.js';
+import crypto from 'crypto';
+import { hashPassword, comparePassword, validatePassword } from '../utils/password.js';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../utils/email.js';
 import { authenticateToken, generateToken, generateRefreshToken } from '../middleware/auth.js';
 import { logAudit } from '../utils/audit.js';
@@ -345,12 +346,15 @@ router.post('/forgot-password', resetLimiter, [
     }
 
     const user = result.rows[0];
-    const resetToken = generateResetToken();
+
+    // Generate a secure random token, store only its SHA256 hash in DB
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
     const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     await pool.query(
-      'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
-      [resetToken, resetTokenExpires, user.id]
+      'UPDATE users SET reset_token_hash = $1, reset_token_expires = $2 WHERE id = $3',
+      [resetTokenHash, resetTokenExpires, user.id]
     );
 
     await logAudit({ userId: user.id, action: 'password_reset_request', req });
@@ -383,16 +387,19 @@ router.post('/reset-password', authLimiter, [
       return res.status(400).json({ error: 'ข้อมูลไม่ถูกต้อง' });
     }
 
-    const { token, password } = req.body;
+  const { token, password } = req.body;
 
     const passwordCheck = validatePassword(password);
     if (!passwordCheck.valid) {
       return res.status(400).json({ error: passwordCheck.message });
     }
 
+    // Compare hashed token
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
     const result = await pool.query(
-      'SELECT id FROM users WHERE reset_token = $1 AND reset_token_expires > NOW() AND is_deleted = FALSE',
-      [token]
+      'SELECT id FROM users WHERE reset_token_hash = $1 AND reset_token_expires > NOW() AND is_deleted = FALSE',
+      [tokenHash]
     );
 
     if (result.rows.length === 0) {
@@ -403,9 +410,16 @@ router.post('/reset-password', authLimiter, [
     const hashedPassword = await hashPassword(password);
 
     await pool.query(
-      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
+      'UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_token_expires = NULL WHERE id = $2',
       [hashedPassword, user.id]
     );
+
+    // Revoke all refresh tokens for this user so existing sessions are invalidated
+    try {
+      await pool.query('UPDATE refresh_tokens SET revoked = TRUE WHERE user_id = $1', [user.id]);
+    } catch (revErr) {
+      console.error('Failed to revoke refresh tokens after password reset:', revErr);
+    }
 
     await logAudit({ userId: user.id, action: 'password_reset_success', req });
 

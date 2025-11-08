@@ -79,9 +79,9 @@ const ForgotPassword = () => {
           </button>
 
           <div className="auth-footer">
-            <Link to="/forgot-password-phone" className="auth-link">
+            {/* <Link to="/forgot-password-phone" className="auth-link">
               📱 ใช้เบอร์โทรศัพท์แทน
-            </Link>
+            </Link> */}
             <Link to="/login" className="auth-link">
               ← กลับไปหน้าเข้าสู่ระบบ
             </Link>

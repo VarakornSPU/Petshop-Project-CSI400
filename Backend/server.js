@@ -66,6 +66,20 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   }
 })();
 
+// Ensure password reset columns exist (safe, idempotent migration)
+(async () => {
+  try {
+    await pool.query(
+      `ALTER TABLE users
+       ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255),
+       ADD COLUMN IF NOT EXISTS reset_token_hash VARCHAR(255),
+       ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP`);
+    console.log('Verified users.reset_token, reset_token_hash and reset_token_expires columns');
+  } catch (err) {
+    console.error('Failed to ensure password reset columns:', err.message || err);
+  }
+})();
+
 // จับ error ที่เกิดบน idle clients (log ไว้)
 if (pool && typeof pool.on === 'function') {
   pool.on('error', (err) => {
