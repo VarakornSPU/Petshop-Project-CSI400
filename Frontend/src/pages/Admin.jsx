@@ -34,6 +34,20 @@ export default function Admin() {
     Promise.all([fetchProducts(), fetchOrders()]).finally(() => setLoading(false));
   }, [token]);
 
+    // ✅ Auto Refresh ทุกๆ 5 วินาที เมื่ออยู่ที่ Tab Products
+  useEffect(() => {
+    if (activeTab !== "products") return;
+
+    // Refresh ทันทีเมื่อเปิด tab
+    fetchProducts();
+
+    const interval = setInterval(() => {
+      fetchProducts();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
   // --- เพิ่มฟังก์ชันดึงคำสั่งซื้อจาก backend ---
   async function fetchOrders() {
     try {
@@ -136,11 +150,17 @@ export default function Admin() {
 
       if (!res.ok) throw new Error(result.message || "เพิ่มสินค้าไม่สำเร็จ");
 
-      setProductsList(prev => [...prev, result.product]);
+      // ✅ รีเฟรชข้อมูลจาก backend ทันที
+      const productsRes = await fetch(API_URL);
+      const productsData = await productsRes.json();
+      setProductsList(productsData);
+
       setStats(prev => ({
         ...prev,
-        totalProducts: prev.totalProducts + 1
+        totalProducts: productsData.length
       }));
+
+      await fetchProducts();
       setShowForm(false);
       alert("✅ เพิ่มสินค้าสำเร็จ!");
     } catch (err) {
@@ -148,6 +168,7 @@ export default function Admin() {
       alert(err.message);
     } finally {
       setLoading(false);
+      fetchProducts();
     }
   }
 
@@ -169,9 +190,8 @@ export default function Admin() {
 
       if (!res.ok) throw new Error(result.message || "แก้ไขสินค้าไม่สำเร็จ");
 
-      setProductsList(prev =>
-        prev.map(p => (p.id === editingProduct.id ? result.product : p))
-      );
+      await fetchProducts();
+
       setEditingProduct(null);
       setShowForm(false);
       alert("✅ แก้ไขสินค้าสำเร็จ!");

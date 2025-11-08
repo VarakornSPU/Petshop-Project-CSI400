@@ -44,6 +44,7 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/products" element={<Products />} />
             <Route path="/productslist" element={<ProductsList />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             
             {/* Auth routes */}

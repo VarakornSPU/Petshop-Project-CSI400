@@ -5,6 +5,7 @@ import { useCart } from "../context/CartContext";
 import "../style/Products.css";
 
 export default function Products() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
@@ -22,8 +23,6 @@ export default function Products() {
           ? "http://localhost:3001/api/products"
           : `http://localhost:3001/api/products?category=${filter}`;
 
-        console.log("🔍 Fetching from:", url);
-
         const res = await fetch(url);
         
         if (!res.ok) {
@@ -31,7 +30,6 @@ export default function Products() {
         }
 
         const data = await res.json();
-        console.log("✅ Data received:", data);
 
         if (Array.isArray(data)) {
           setProducts(data);
@@ -74,42 +72,32 @@ export default function Products() {
     );
   });
 
-  // ✅ ฟังก์ชันแปลง path รูปภาพให้เป็น URL ที่ถูกต้อง
   const getImageUrl = (product) => {
     let imagePath = null;
 
-    // ลองหารูปจาก images array ก่อน
     if (product.images && Array.isArray(product.images) && product.images.length > 0) {
       imagePath = product.images[0];
     } 
-    // ถ้าไม่มี ลองหาจาก image field
     else if (product.image) {
       imagePath = product.image;
     }
 
-    console.log("🖼️ Product:", product.name, "| Image path:", imagePath);
-
-    // ถ้าไม่มีรูป ใช้ placeholder SVG (ไม่ต้องพึ่ง CDN)
     if (!imagePath) {
       return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
     }
 
-    // ถ้าเป็น URL เต็มอยู่แล้ว
     if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
       return imagePath;
     }
 
-    // ถ้าขึ้นต้นด้วย /uploads/
     if (imagePath.startsWith("/uploads/")) {
       return `http://localhost:3001${imagePath}`;
     }
 
-    // ถ้าขึ้นต้นด้วย /
     if (imagePath.startsWith("/")) {
       return `http://localhost:3001${imagePath}`;
     }
 
-    // ถ้าเป็นชื่อไฟล์เฉยๆ
     return `http://localhost:3001/uploads/${imagePath}`;
   };
 
@@ -203,7 +191,12 @@ export default function Products() {
             </p>
           ) : (
             filtered.map((p) => (
-              <div className="product-card" key={p.id}>
+              <div 
+                className="product-card" 
+                key={p.id}
+                onClick={() => navigate(`/product/${p.id}`)}
+                style={{ cursor: "pointer" }}
+              >
                 <div className="product-image">
                   {p.icon || (
                     <img 
@@ -211,19 +204,14 @@ export default function Products() {
                       alt={p.name}
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       onError={(e) => {
-                        console.error("❌ Image failed:", getImageUrl(p));
-                        // ใช้ SVG placeholder แทน
                         e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
-                      }}
-                      onLoad={() => {
-                        console.log("✅ Image loaded:", getImageUrl(p));
                       }}
                     />
                   )}
                 </div>
                 <div className="product-info">
                   <h3 className="product-title">{p.name}</h3>
-                  <p className="product-description">{p.description}</p>
+                  <p className="product-description-1">{p.description}</p>
                   
                   {p.rating && typeof p.rating === 'number' && p.rating > 0 && (
                     <div className="product-rating">
@@ -249,7 +237,10 @@ export default function Products() {
                   
                   <button 
                     className="add-to-cart" 
-                    onClick={() => addToCart(p)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToCart(p);
+                    }}
                     disabled={p.stock === 0}
                   >
                     {p.stock === 0 ? "สินค้าหมด" : "เพิ่มลงตะกร้า"}

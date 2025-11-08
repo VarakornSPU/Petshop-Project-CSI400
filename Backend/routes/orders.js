@@ -113,10 +113,10 @@ router.get("/", authenticateToken, async (req, res) => {
             WHERE user_id = $1 
             ORDER BY created_at DESC
         `, [req.user.id]);
-        
+
         const orders = ordersRes.rows;
         const orderIds = orders.map(o => o.id);
-        
+
         // หากไม่มีคำสั่งซื้อ ให้คืนค่าทันที
         if (orderIds.length === 0) {
             return res.json({ orders: [] });
@@ -127,7 +127,7 @@ router.get("/", authenticateToken, async (req, res) => {
             `SELECT * FROM order_items WHERE order_id = ANY($1)`,
             [orderIds]
         );
-        
+
         // 3) ดึง payments ทั้งหมดใน Batch เดียว (แก้ปัญหา N+1)
         const paymentsRes = await client.query(
             `SELECT p.*, to_char((p.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS created_at_local
@@ -147,7 +147,7 @@ router.get("/", authenticateToken, async (req, res) => {
             o.items = itemsByOrder[o.id] || [];
             o.payments = paymentsByOrder[o.id] || [];
             // ใช้ข้อมูลผู้ใช้ที่ล็อกอินอยู่ (เพราะเป็นคำสั่งซื้อของเขา)
-            o.customer = `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim(); 
+            o.customer = `${req.user.first_name || ''} ${req.user.last_name || ''}`.trim();
             o.date = o.created_at_local;
         }
 
@@ -506,5 +506,30 @@ router.put("/:id/cancel", authenticateToken, async (req, res) => {
     }
 });
 
+// ✅ เพิ่ม route นี้: เช็คว่า user เคยซื้อสินค้านี้หรือไม่
+router.get("/check-purchase/:productId", authenticateToken, async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const userId = req.user.id;
+
+        // ตรวจสอบว่ามี order ที่สำเร็จและมีสินค้านี้หรือไม่
+        const result = await pool.query(
+            `SELECT EXISTS (
+        SELECT 1 
+        FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.user_id = $1 
+          AND oi.product_id = $2
+          AND o.status IN ('completed', 'paid')
+      ) AS has_purchased`,
+            [userId, productId]
+        );
+
+        res.json({ hasPurchased: result.rows[0].has_purchased });
+    } catch (err) {
+        console.error("❌ Error checking purchase:", err);
+        res.status(500).json({ message: "ไม่สามารถตรวจสอบประวัติการซื้อได้" });
+    }
+});
 
 export default router;
