@@ -70,31 +70,44 @@ router.get("/", async (req, res) => {
 });
 
 // ✅ PUT /api/admin/products/:id — แก้ไขสินค้า
-router.put("/:id", upload.array("images", 10), async (req, res) => {
+router.put("/:id", upload.array("newImages", 10), async (req, res) => { // เปลี่ยนชื่อ field เป็น newImages
   try {
     const { id } = req.params;
-    const { name, description, category, price, stock } = req.body;
+    const { name, description, category, price, stock, existingImages } = req.body; // ✅ รับ existingImages (JSON string)
 
     if (!name || !description || !category || !price || !stock) {
       return res.status(400).json({ message: "กรุณากรอกข้อมูลให้ครบ" });
     }
 
-    // ถ้ามีรูปใหม่ ให้ใช้รูปใหม่ ถ้าไม่มีให้ใช้รูปเดิม
-    let images = [];
-    if (req.files && req.files.length > 0) {
-      images = req.files.map((file) => `/uploads/${file.filename}`);
-    } else {
-      // ดึงรูปเดิมจาก database
-      const oldProduct = await pool.query("SELECT images FROM products WHERE id = $1", [id]);
-      images = oldProduct.rows[0]?.images || [];
+    // 1. นำรูปภาพเดิมที่ยังเหลืออยู่มารวม (แปลงจาก JSON string)
+    let finalImages = [];
+    if (existingImages) {
+      try {
+        // existingImages เป็น string ของ array ของ path รูปภาพ
+        const parsedExisting = JSON.parse(existingImages);
+        if (Array.isArray(parsedExisting)) {
+          finalImages = parsedExisting;
+        }
+      } catch (e) {
+        console.warn("⚠️ Cannot parse existingImages:", existingImages);
+      }
     }
+
+    // 2. นำรูปภาพที่อัปโหลดใหม่มารวม
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map((file) => `/uploads/${file.filename}`);
+      finalImages = [...finalImages, ...newImages];
+    }
+
+    // 3. (Optional แต่ควรมี) ลบรูปภาพเก่าที่ถูกลบออกจาก database
+    // *การลบรูปภาพเก่าจาก Server จะทำได้ถ้าเราส่งรายการรูปภาพที่ถูกลบเข้ามาด้วย แต่เพื่อความเรียบง่าย จะละเว้นไปก่อน*
 
     const result = await pool.query(
       `UPDATE products 
        SET name = $1, description = $2, category = $3, price = $4, stock = $5, images = $6
        WHERE id = $7
        RETURNING *`,
-      [name, description, category, price, stock, images, id]
+      [name, description, category, price, stock, finalImages, id] // ✅ ใช้ finalImages
     );
 
     if (result.rows.length === 0) {
