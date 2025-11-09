@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
           });
           // Persist verified user to localStorage if it wasn't already saved
           if (!savedUser) {
-            localStorage.setItem('user', JSON.stringify(response.user));
+            // localStorage.setItem('user', JSON.stringify(response.user));
           }
           console.log('User data:', response.user);
           console.log('Auth verified successfully');
@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }) => {
       const token = response.accessToken || response.token;
       
       localStorage.setItem('authToken', token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      // localStorage.setItem('user', JSON.stringify(response.user));
 
       dispatch({
         type: 'LOGIN_SUCCESS',
@@ -162,7 +162,7 @@ export const AuthProvider = ({ children }) => {
       const token = response.accessToken || response.token;
       
       localStorage.setItem('authToken', token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      // localStorage.setItem('user', JSON.stringify(response.user));
 
       dispatch({
         type: 'LOGIN_SUCCESS',
