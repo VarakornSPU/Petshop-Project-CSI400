@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import "../style/Products.css";
 import WishlistButton from '../components/WishlistButton';
+import SearchBar from '../components/SearchBar';
 
 export default function Products() {
   const navigate = useNavigate();
@@ -196,6 +197,10 @@ export default function Products() {
               อุปกรณ์และของใช้
             </button>
           </div>
+        </div>
+        <div className="Search-Bar">
+          <p>ค้นหาสินค้า :</p>
+            <SearchBar />
         </div>
 
         <div className="products-grid" id="productsGrid">

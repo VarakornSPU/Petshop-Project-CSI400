@@ -1,0 +1,355 @@
+/* Search Bar Styles */
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+}
+
+.search-form {
+  width: 100%;
+}
+
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #e07856;
+  pointer-events: none;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.875rem 3rem;
+  font-size: 0.875rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 9999px;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.search-input:focus {
+  border-color: #e07856;
+  box-shadow: 0 0 0 4px rgba(224, 120, 86, 0.1), 0 4px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.clear-button {
+  position: absolute;
+  right: 0.75rem;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 1;
+  border-radius: 50%;
+}
+
+.clear-button:hover {
+  color: #e07856;
+  background: #fce8e0;
+}
+
+/* Results Dropdown */
+.results-dropdown {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(224, 120, 86, 0.1);
+  border: 1px solid #fce8e0;
+  max-height: 450px;
+  overflow-y: auto;
+  z-index: 1000;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.results-header {
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #e07856;
+  background: linear-gradient(135deg, #fef7f5 0%, white 100%);
+  border-bottom: 1px solid #fce8e0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.results-header::before {
+  content: '✨';
+  font-size: 1rem;
+}
+
+.results-list {
+  padding: 0.5rem 0;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.result-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #e07856;
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+
+.result-item:hover {
+  background: linear-gradient(90deg, #fef7f5 0%, white 100%);
+}
+
+.result-item:hover::before {
+  transform: scaleY(1);
+}
+
+.result-image {
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, #fef7f5 0%, #f3f4f6 100%);
+  border: 2px solid #fce8e0;
+  transition: all 0.2s;
+}
+
+.result-item:hover .result-image {
+  transform: scale(1.05);
+  border-color: #e07856;
+}
+
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-name {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-category {
+  margin: 0.25rem 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  background: #f3f4f6;
+  border-radius: 9999px;
+}
+
+.result-category::before {
+  content: '🏷️';
+  font-size: 0.75rem;
+}
+
+.result-price {
+  margin: 0.5rem 0 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e07856;
+}
+
+.view-all-button {
+  width: 100%;
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #e07856;
+  background: linear-gradient(135deg, #fef7f5 0%, #fce8e0 100%);
+  border: none;
+  border-top: 1px solid #fce8e0;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.view-all-button:hover {
+  background: linear-gradient(135deg, #fce8e0 0%, #f5d5c5 100%);
+  color: #d96847;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  color: #9ca3af;
+}
+
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid #fce8e0;
+  border-top: 3px solid #e07856;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* No Results */
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.no-results svg {
+  opacity: 0.2;
+  margin-bottom: 1rem;
+  color: #e07856;
+}
+
+.no-results p {
+  margin: 0.5rem 0;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.no-results small {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+}
+
+/* Scrollbar Styling */
+.results-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.results-dropdown::-webkit-scrollbar-track {
+  background: #f9fafb;
+  border-radius: 0 1rem 1rem 0;
+}
+
+.results-dropdown::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.results-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #e07856;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .search-container {
+    max-width: 100%;
+  }
+
+  .results-dropdown {
+    max-height: 350px;
+  }
+
+  .result-image {
+    width: 60px;
+    height: 60px;
+  }
+
+  .result-name {
+    font-size: 0.875rem;
+  }
+
+  .result-category {
+    font-size: 0.6875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input {
+    padding: 0.75rem 2.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .result-item {
+    padding: 0.75rem 1rem;
+  }
+
+  .result-image {
+    width: 50px;
+    height: 50px;
+  }
+}

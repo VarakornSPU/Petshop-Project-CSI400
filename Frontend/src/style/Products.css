@@ -7,7 +7,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 2rem;
 }
@@ -35,6 +35,43 @@
   background: var(--primary);
   color: var(--primary-foreground);
   border-color: var(--primary);
+}
+
+/* ✨ Search Bar Section - ส่วนใหม่ที่สวยงาม */
+.Search-Bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fef7f5 0%, #f9f3f0 100%);
+  border-radius: 1rem;
+  border: 2px solid #fce8e0;
+  box-shadow: 0 4px 12px rgba(224, 120, 86, 0.08);
+  transition: all 0.3s ease;
+}
+
+.Search-Bar:hover {
+  box-shadow: 0 6px 20px rgba(224, 120, 86, 0.12);
+  border-color: #f5d5c5;
+}
+
+.Search-Bar p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e07856;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
+
+.Search-Bar .search-container {
+  flex: 1;
+  max-width: 100%;
 }
 
 .products-grid {
@@ -95,7 +132,7 @@
 .stock-warning {
   color: orange;
   font-size: 0.9rem;
-  min-height: 1.2rem; /* ✅ ล็อกพื้นที่สำหรับข้อความ stock ไว้เสมอ */
+  min-height: 1.2rem;
   margin-bottom: 0.5rem;
 }
 
@@ -104,12 +141,12 @@
   font-weight: 600;
   margin-bottom: .75rem;
   line-height: 1.3;
-    display: -webkit-box;
-  -webkit-line-clamp: 2; /* แสดงได้ 2 บรรทัด */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: 3rem; /* ✅ ล็อกความสูงให้เท่ากันทุก card */
+  min-height: 3rem;
 }
 
 .product-description-1 {
@@ -119,7 +156,7 @@
   line-height: 1.5;
   min-height: 2.7rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* กำหนดให้แสดงเพียง 2 บรรทัด */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis; 
@@ -178,4 +215,46 @@
   top: -3rem;
   right: 1rem;
   z-index: 10;
+}
+
+/* 📱 Responsive Design */
+@media (max-width: 768px) {
+  .Search-Bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+  }
+
+  .Search-Bar p {
+    min-width: auto;
+    justify-content: center;
+  }
+
+  .products-header {
+    gap: 1rem;
+  }
+
+  .filter-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .Search-Bar p::before {
+    content: '';
+  }
+
+  .Search-Bar p {
+    font-size: 0.875rem;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
 }

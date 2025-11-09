@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import WishlistButton from "../components/WishlistButton"; // ✅ เพิ่ม import
+import SearchBar from '../components/SearchBar';
 import "../style/Products.css";
 
 // ฟังก์ชันสำหรับดึง URL รูปภาพ
@@ -130,7 +131,10 @@ export default function ProductsList() {
             <button className={"filter-btn" + (filter === "accessories" ? " active" : "")} onClick={() => handleFilterChange("accessories")}>อุปกรณ์และของใช้</button>
           </div>
         </div>
-
+        <div className="Search-Bar">
+          <p>ค้นหาสินค้า :</p>
+          <SearchBar />
+        </div>
         {loading ? (
           <p className="loading-text" style={{ textAlign: "center", padding: "2rem" }}>กำลังโหลดสินค้า...</p>
         ) : error ? (

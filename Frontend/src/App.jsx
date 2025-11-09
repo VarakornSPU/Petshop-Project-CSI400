@@ -29,6 +29,7 @@ import Checkout from "./pages/Checkout";
 import MyOrders from "./pages/MyOrders";
 import ProductDetail from "./pages/ProductDetail";
 import Wishlist from './pages/Wishlist'; // ✅ เพิ่ม
+import SearchResults from './pages/SearchResults';
 
 export default function App() {
   return (
@@ -49,6 +50,7 @@ export default function App() {
                 <Route path="/productslist" element={<ProductsList />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/search" element={<SearchResults />} />
                 
                 {/* Auth routes */}
                 <Route path="/login" element={<Login />} />
