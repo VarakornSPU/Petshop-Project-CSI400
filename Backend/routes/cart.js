@@ -29,7 +29,7 @@ router.get("/", authenticateToken, async (req, res) => {
     console.error('Cart GET error:', err);
     res.status(500).json({ error: "Cannot fetch cart", details: err.message });
   }
-}); 
+});
 
 // เพิ่มสินค้าลงตะกร้า
 router.post("/add", authenticateToken, async (req, res) => {
@@ -81,6 +81,21 @@ router.put("/update/:productId", authenticateToken, async (req, res) => {
     if (cartRes.rows.length === 0) return res.status(404).json({ error: "Cart not found" });
 
     const cartId = cartRes.rows[0].id;
+    await pool.query(
+      "UPDATE cart_items SET quantity = $1 WHERE cart_id = $2 AND product_id = $3",
+      [quantity, cartId, productId]
+    );
+
+    // ถ้า quantity <= 0 ให้ลบสินค้าออกจากตะกร้า
+    if (quantity <= 0) {
+      await pool.query(
+        "DELETE FROM cart_items WHERE cart_id = $1 AND product_id = $2",
+        [cartId, productId]
+      );
+      return res.json({ message: "ลบสินค้าออกจากตะกร้าแล้ว", deleted: true });
+    }
+
+    // ถ้า quantity > 0 ให้อัปเดตจำนวน
     await pool.query(
       "UPDATE cart_items SET quantity = $1 WHERE cart_id = $2 AND product_id = $3",
       [quantity, cartId, productId]

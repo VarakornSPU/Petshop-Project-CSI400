@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import RoleBasedComponent from './RoleBasedComponent';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
 import '../style/Header.css';
 
@@ -12,7 +13,8 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
-  const { cartItems, setIsCartOpen, cartItemsCount } = useCart(); 
+  const { cartItems, setIsCartOpen, cartItemsCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,6 +37,14 @@ export default function Header() {
     console.log('Cart items:', cartItems);
     console.log('Cart count:', cartItemsCount);
     setIsCartOpen(true);
+  };
+
+  const handleWishlistClick = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      alert('กรุณาเข้าสู่ระบบเพื่อใช้งานรายการที่ถูกใจ');
+      navigate('/login');
+    }
   };
 
   const handleAddressClick = (e) => {
@@ -80,7 +90,7 @@ export default function Header() {
                 ติดต่อ
                 <span className="nav-underline"></span>
               </Link>
-              
+
               {/* Admin Link */}
               <RoleBasedComponent requiredRole="admin">
                 <Link to="/admin" className="admin-link">
@@ -93,10 +103,28 @@ export default function Header() {
               </RoleBasedComponent>
             </nav>
 
-            {/* Right Side - Cart & Auth */}
+            {/* Right Side - Wishlist, Cart & Auth */}
             <div className="header-actions">
-              <button 
-                onClick={handleCartClick} 
+              {/* Wishlist Button */}
+              <Link 
+                to="/wishlist" 
+                className="wishlist-button"
+                onClick={handleWishlistClick}
+              >
+                <div className="wishlist-icon-wrapper">
+                  <svg className="wishlist-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  {isAuthenticated && wishlistCount > 0 && (
+                    <span className="wishlist-badge">{wishlistCount}</span>
+                  )}
+                  <div className="wishlist-bg"></div>
+                </div>
+              </Link>
+
+              {/* Cart Button */}
+              <button
+                onClick={handleCartClick}
                 className="cart-button"
                 type="button"
                 aria-label="View shopping cart"
@@ -148,19 +176,25 @@ export default function Header() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <Link to="/profile" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
                         <svg className="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         โปรไฟล์
                       </Link>
-                      
-                      {/* <RoleBasedComponent allowedRoles={['customer', 'admin']}> */}
+
                       <RoleBasedComponent allowedRoles={['customer', 'admin']}>
-                        <Link 
-                          to="/addresses" 
-                          className="dropdown-item" 
+                        <Link to="/wishlist" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
+                          <svg className="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                          รายการที่ถูกใจ
+                        </Link>
+
+                        <Link
+                          to="/addresses"
+                          className="dropdown-item"
                           onClick={handleAddressClick}
                         >
                           <svg className="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +203,7 @@ export default function Header() {
                           </svg>
                           ที่อยู่จัดส่ง
                         </Link>
-                        
+
                         <Link to="/my-orders" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
                           <svg className="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -177,7 +211,7 @@ export default function Header() {
                           คำสั่งซื้อของฉัน
                         </Link>
                       </RoleBasedComponent>
-                      
+
                       <div className="dropdown-divider"></div>
                       <button onClick={handleLogout} className="dropdown-item dropdown-item-logout">
                         <svg className="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,7 +258,7 @@ export default function Header() {
                 <Link to="/contact" className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
                   ติดต่อ
                 </Link>
-                
+
                 <RoleBasedComponent requiredRole="admin">
                   <Link to="/admin" className="mobile-nav-link mobile-admin-link" onClick={() => setIsMenuOpen(false)}>
                     👑 จัดการระบบ
@@ -249,12 +283,12 @@ export default function Header() {
 
       {/* Overlay */}
       {(showUserMenu || isMenuOpen) && (
-        <div 
-          className="header-overlay" 
+        <div
+          className="header-overlay"
           onClick={() => {
             setShowUserMenu(false);
             setIsMenuOpen(false);
-          }} 
+          }}
           style={{
             position: 'fixed',
             inset: 0,

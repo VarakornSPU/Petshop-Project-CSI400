@@ -141,6 +141,9 @@
   color: #222;
   margin: 0;
   line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .rating-summary {

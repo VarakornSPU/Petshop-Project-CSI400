@@ -2,14 +2,13 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-
-import "../style/Products.css"; // ✅ นำเข้า CSS ของ Products.jsx เพื่อให้ Style เหมือนกัน
+import WishlistButton from "../components/WishlistButton"; // ✅ เพิ่ม import
+import "../style/Products.css";
 
 // ฟังก์ชันสำหรับดึง URL รูปภาพ
 const getImageUrl = (rawImages) => {
   let images = [];
 
-  // Logic การแปลง String/JSON/Array ให้เป็น Array
   if (Array.isArray(rawImages)) {
     images = rawImages;
   } else if (typeof rawImages === "string") {
@@ -29,12 +28,10 @@ const getImageUrl = (rawImages) => {
     }
   }
 
-  // ถ้าไม่มีรูป ใช้ placeholder SVG
   if (!images || images.length === 0) {
     return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E`;
   }
 
-  // ดึงรูปแรก
   const firstImage = images[0];
   let imageUrl;
 
@@ -51,24 +48,37 @@ const getImageUrl = (rawImages) => {
   return imageUrl;
 };
 
+// ✅ ฟังก์ชันช่วยจัดการค่า rating และ reviews
+const getRating = (rating) => {
+  if (rating === null || rating === undefined) return 0;
+  const numRating = Number(rating);
+  return isNaN(numRating) ? 0 : numRating;
+};
+
+const getReviewsCount = (reviews) => {
+  if (reviews === null || reviews === undefined) return 0;
+  const numReviews = Number(reviews);
+  return isNaN(numReviews) ? 0 : numReviews;
+};
+
 export default function ProductsList() {
   const location = useLocation();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  // state filter ถูกควบคุมผ่าน URL ใน useEffect แรก
+
   const [filter, setFilter] = useState("all");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 1. ดึงค่า category จาก URL เมื่อโหลดหน้า
+  // ดึงค่า category จาก URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const category = params.get("category") || "all";
     setFilter(category);
   }, [location.search]);
 
-  // 2. Fetch ข้อมูลเมื่อ filter เปลี่ยน
+  // Fetch สินค้า
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -80,13 +90,9 @@ export default function ProductsList() {
           : `http://localhost:3001/api/products?category=${filter}`;
 
         const res = await fetch(url);
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const data = await res.json();
-
         if (Array.isArray(data)) {
           setProducts(data);
         } else if (data.products && Array.isArray(data.products)) {
@@ -107,56 +113,26 @@ export default function ProductsList() {
     fetchProducts();
   }, [filter]);
 
-  // ฟังก์ชันสำหรับเปลี่ยน Filter
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
-    // ✅ อัพเดท URL เพื่อให้ลิงก์นี้สามารถแชร์ได้และรีเฟรชได้
     navigate(`/productslist?category=${newFilter}`, { replace: true });
   };
 
-
   return (
-    <section className="products"> {/* ใช้ class products จาก Products.css */}
+    <section className="products">
       <div className="container">
-
-        {/* ======================================= */}
-        {/* ✅ เพิ่มส่วน Products Header และ Filter Buttons */}
-        {/* ======================================= */}
         <div className="products-header">
           <h2 className="section-title">สินค้าในหมวด: {getCategoryLabel(filter)}</h2>
           <div className="filter-buttons">
-            <button
-              className={"filter-btn" + (filter === "all" ? " active" : "")}
-              onClick={() => handleFilterChange("all")}
-            >
-              ทั้งหมด
-            </button>
-            <button
-              className={"filter-btn" + (filter === "food" ? " active" : "")}
-              onClick={() => handleFilterChange("food")}
-            >
-              อาหารสัตว์เลี้ยง
-            </button>
-            <button
-              className={"filter-btn" + (filter === "toys" ? " active" : "")}
-              onClick={() => handleFilterChange("toys")}
-            >
-              ของเล่น
-            </button>
-            <button
-              className={"filter-btn" + (filter === "accessories" ? " active" : "")}
-              onClick={() => handleFilterChange("accessories")}
-            >
-              อุปกรณ์และของใช้
-            </button>
+            <button className={"filter-btn" + (filter === "all" ? " active" : "")} onClick={() => handleFilterChange("all")}>ทั้งหมด</button>
+            <button className={"filter-btn" + (filter === "food" ? " active" : "")} onClick={() => handleFilterChange("food")}>อาหารสัตว์เลี้ยง</button>
+            <button className={"filter-btn" + (filter === "toys" ? " active" : "")} onClick={() => handleFilterChange("toys")}>ของเล่น</button>
+            <button className={"filter-btn" + (filter === "accessories" ? " active" : "")} onClick={() => handleFilterChange("accessories")}>อุปกรณ์และของใช้</button>
           </div>
         </div>
-        {/* ======================================= */}
 
         {loading ? (
-          <p className="loading-text" style={{ textAlign: "center", padding: "2rem" }}>
-            กำลังโหลดสินค้า...
-          </p>
+          <p className="loading-text" style={{ textAlign: "center", padding: "2rem" }}>กำลังโหลดสินค้า...</p>
         ) : error ? (
           <div className="error-message" style={{ textAlign: "center", padding: "2rem", backgroundColor: "#fee", borderRadius: "8px", margin: "1rem 0" }}>
             <p style={{ color: "#c00" }}>❌ เกิดข้อผิดพลาด: {error}</p>
@@ -181,68 +157,70 @@ export default function ProductsList() {
           </p>
         ) : (
           <div className="products-grid" id="productsGrid">
-            {products.map((p) => (
-              // Product Card Structure เหมือน Products.jsx
-              <div
-                className="product-card"
-                key={p.id}
-                onClick={() => navigate(`/product/${p.id}`)}
-                style={{ cursor: "pointer" }}
-              >
-                <div className="product-image">
-                  <img
-                    src={getImageUrl(p.images)}
-                    alt={p.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    onError={(e) => {
-                      e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
-                    }}
-                  />
-                </div>
-                <div className="product-info">
-                  <h3 className="product-title">{p.name}</h3>
+            {products.map((p) => {
+              const rating = getRating(p.rating);
+              const reviewsCount = getReviewsCount(p.reviews);
 
-                  {p.description && (
-                    <p className="product-description-1">
-                      {p.description}
-                    </p>
-                  )}
-
-                  {p.rating && typeof p.rating === 'number' && p.rating > 0 && (
-                    <div className="product-rating">
-                      <span className="stars">
-                        {"★".repeat(Math.floor(p.rating))}
-                        {"☆".repeat(5 - Math.floor(p.rating))}
-                      </span>
-                      <span className="rating-text">
-                        {p.rating.toFixed(1)} ({(p.reviews || 0).toLocaleString()} รีวิว)
-                      </span>
+              return (
+                <div
+                  className="product-card"
+                  key={p.id}
+                  onClick={() => navigate(`/product/${p.id}`)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div className="product-image" style={{ position: "relative" }}>
+                    <img
+                      src={getImageUrl(p.images)}
+                      alt={p.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(e) => {
+                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+                      }}
+                    />
+                    {/* ✅ เพิ่มปุ่ม Wishlist เหมือนหน้า Products.jsx */}
+                    <div className="wishlist-btn-wrapper-1">
+                      <WishlistButton productId={p.id} size="medium" />
                     </div>
-                  )}
-
-                  <div className="product-price">
-                    ฿{(p.price ? Number(p.price) : 0).toLocaleString()}
                   </div>
 
-                  {p.stock !== undefined && p.stock !== null && p.stock <= 5 && p.stock > 0 && (
-                    <span style={{ color: "orange", fontSize: "0.9rem" }}>
-                      เหลือเพียง {p.stock} ชิ้น
-                    </span>
-                  )}
+                  <div className="product-info">
+                    <h3 className="product-title">{p.name}</h3>
+                    {p.description && <p className="product-description-1">{p.description}</p>}
 
-                  <button
-                    className="add-to-cart"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addToCart(p);
-                    }}
-                    disabled={p.stock === 0}
-                  >
-                    {p.stock === 0 ? "สินค้าหมด" : "เพิ่มลงตะกร้า"}
-                  </button>
+                    {/* ✅ แสดง Rating แบบเดียวกับหน้า Products.jsx */}
+                    <div className="product-rating">
+                      <span className="stars" style={{ color: rating > 0 ? '#FFD700' : '#ddd' }}>
+                        {"★".repeat(Math.floor(rating))}
+                        {"☆".repeat(5 - Math.floor(rating))}
+                      </span>
+                      <span className="rating-text">
+                        {rating.toFixed(1)} ({reviewsCount.toLocaleString()} รีวิว)
+                      </span>
+                    </div>
+
+                    <div className="product-price">฿{(p.price ? Number(p.price) : 0).toLocaleString()}</div>
+
+                    {p.stock !== undefined && p.stock !== null && p.stock <= 5 && p.stock > 0 ? (
+                      <span className="stock-warning">เหลือเพียง {p.stock} ชิ้น</span>
+                    ) : (
+                      <span className="stock-warning">&nbsp;</span> // เว้นว่างแต่ยังครองพื้นที่
+                    )}
+
+
+                    <button
+                      className="add-to-cart"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(p);
+                      }}
+                      disabled={p.stock === 0}
+                    >
+                      {p.stock === 0 ? "สินค้าหมด" : "เพิ่มลงตะกร้า"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

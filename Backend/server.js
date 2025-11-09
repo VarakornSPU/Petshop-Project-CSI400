@@ -17,6 +17,7 @@ import cartRouter from "./routes/cart.js";
 import ordersRoutes from './routes/orders.js';
 import paymentsRoutes from './routes/payments.js';
 import productReviewsRoutes from './routes/productReviews.js';
+import wishlistRoutes from './routes/wishlists.js';
 
 // Passport Configuration
 import passport from './config/passport.js';
@@ -116,6 +117,10 @@ app.use("/api/admin/products", adminProductRoutes);
 // Reviews
 app.use("/api/products", productReviewsRoutes);
 
+// Wishlist
+app.use('/api/wishlists', wishlistRoutes);
+
+// Cart
 app.use("/cart", cartRouter);
 
 app.get("/api/products", async (req, res) => {

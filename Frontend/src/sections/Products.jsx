@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import "../style/Products.css";
+import WishlistButton from '../components/WishlistButton';
 
 export default function Products() {
   const navigate = useNavigate();
@@ -19,12 +20,12 @@ export default function Products() {
         setLoading(true);
         setError(null);
 
-        const url = filter === "all" 
+        const url = filter === "all"
           ? "http://localhost:3001/api/products"
           : `http://localhost:3001/api/products?category=${filter}`;
 
         const res = await fetch(url);
-        
+
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
@@ -77,7 +78,7 @@ export default function Products() {
 
     if (product.images && Array.isArray(product.images) && product.images.length > 0) {
       imagePath = product.images[0];
-    } 
+    }
     else if (product.image) {
       imagePath = product.image;
     }
@@ -99,6 +100,19 @@ export default function Products() {
     }
 
     return `http://localhost:3001/uploads/${imagePath}`;
+  };
+
+  // ✅ Helper function สำหรับแสดง rating
+  const getRating = (rating) => {
+    if (rating === null || rating === undefined) return 0;
+    const numRating = Number(rating);
+    return isNaN(numRating) ? 0 : numRating;
+  };
+
+  const getReviewsCount = (reviews) => {
+    if (reviews === null || reviews === undefined) return 0;
+    const numReviews = Number(reviews);
+    return isNaN(numReviews) ? 0 : numReviews;
   };
 
   if (loading) {
@@ -123,15 +137,15 @@ export default function Products() {
           <div className="products-header">
             <h2 className="section-title">สินค้าแนะนำ</h2>
           </div>
-          <div className="error-message" style={{ 
-            textAlign: "center", 
+          <div className="error-message" style={{
+            textAlign: "center",
             padding: "2rem",
             backgroundColor: "#fee",
             borderRadius: "8px",
             margin: "1rem 0"
           }}>
             <p style={{ color: "#c00" }}>❌ เกิดข้อผิดพลาด: {error}</p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               style={{
                 marginTop: "1rem",
@@ -190,64 +204,72 @@ export default function Products() {
               {products.length === 0 ? "ไม่มีสินค้าในระบบ" : "ไม่พบสินค้าที่ค้นหา"}
             </p>
           ) : (
-            filtered.map((p) => (
-              <div 
-                className="product-card" 
-                key={p.id}
-                onClick={() => navigate(`/product/${p.id}`)}
-                style={{ cursor: "pointer" }}
-              >
-                <div className="product-image">
-                  {p.icon || (
-                    <img 
-                      src={getImageUrl(p)}
-                      alt={p.name}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      onError={(e) => {
-                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
-                      }}
-                    />
-                  )}
-                </div>
-                <div className="product-info">
-                  <h3 className="product-title">{p.name}</h3>
-                  <p className="product-description-1">{p.description}</p>
-                  
-                  {p.rating && typeof p.rating === 'number' && p.rating > 0 && (
+            filtered.map((p) => {
+              const rating = getRating(p.rating);
+              const reviewsCount = getReviewsCount(p.reviews);
+
+              return (
+                <div
+                  className="product-card"
+                  key={p.id}
+                  onClick={() => navigate(`/product/${p.id}`)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div className="product-image">
+                    {p.icon || (
+                      <img
+                        src={getImageUrl(p)}
+                        alt={p.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        onError={(e) => {
+                          e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23ddd' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+                        }}
+                      />
+                    )}
+                    <div className="wishlist-btn-wrapper-1">
+                      <WishlistButton productId={p.id} size="medium" />
+                    </div>
+                  </div>
+                  <div className="product-info">
+                    <h3 className="product-title">{p.name}</h3>
+                    <p className="product-description-1">{p.description}</p>
+
+                    {/* ✅ แสดง rating เสมอ แม้ = 0 */}
                     <div className="product-rating">
-                      <span className="stars">
-                        {"★".repeat(Math.floor(p.rating))}
-                        {"☆".repeat(5 - Math.floor(p.rating))}
+                      <span className="stars" style={{ color: rating > 0 ? '#FFD700' : '#ddd' }}>
+                        {"★".repeat(Math.floor(rating))}
+                        {"☆".repeat(5 - Math.floor(rating))}
                       </span>
                       <span className="rating-text">
-                        {p.rating.toFixed(1)} ({(p.reviews || 0).toLocaleString()} รีวิว)
+                        {rating.toFixed(1)} ({reviewsCount.toLocaleString()} รีวิว)
                       </span>
                     </div>
-                  )}
-                  
-                  <div className="product-price">
-                    ฿{(p.price ? Number(p.price) : 0).toLocaleString()}
+
+                    <div className="product-price">
+                      ฿{(p.price ? Number(p.price) : 0).toLocaleString()}
+                    </div>
+
+                    {p.stock !== undefined && p.stock !== null && p.stock <= 5 && p.stock > 0 ? (
+                      <span className="stock-warning">เหลือเพียง {p.stock} ชิ้น</span>
+                    ) : (
+                      <span className="stock-warning">&nbsp;</span> // เว้นว่างแต่ยังครองพื้นที่
+                    )}
+
+
+                    <button
+                      className="add-to-cart"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(p);
+                      }}
+                      disabled={p.stock === 0}
+                    >
+                      {p.stock === 0 ? "สินค้าหมด" : "เพิ่มลงตะกร้า"}
+                    </button>
                   </div>
-                  
-                  {p.stock !== undefined && p.stock !== null && p.stock <= 5 && p.stock > 0 && (
-                    <span style={{ color: "orange", fontSize: "0.9rem" }}>
-                      เหลือเพียง {p.stock} ชิ้น
-                    </span>
-                  )}
-                  
-                  <button 
-                    className="add-to-cart" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addToCart(p);
-                    }}
-                    disabled={p.stock === 0}
-                  >
-                    {p.stock === 0 ? "สินค้าหมด" : "เพิ่มลงตะกร้า"}
-                  </button>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

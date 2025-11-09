@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import WishlistButton from '../components/WishlistButton';
+import { useCart } from "../context/CartContext";
 import "../style/ProductDetail.css";
 
 const API = "http://localhost:3001";
@@ -18,6 +20,18 @@ export default function ProductDetail() {
     const [loading, setLoading] = useState(true);
     const [hasPurchased, setHasPurchased] = useState(false);
     const [checkingPurchase, setCheckingPurchase] = useState(true);
+    // ใช้ addToCart
+const { addToCart } = useCart();
+
+// เพิ่มฟังก์ชัน
+const handleAddToCart = () => {
+    if (product.stock === 0) {
+        alert("สินค้าหมดแล้ว");
+        return;
+    }
+    addToCart(product);
+};
+
 
     useEffect(() => {
         async function fetchData() {
@@ -251,7 +265,7 @@ export default function ProductDetail() {
 
                 <div className="product-info-section">
                     <h1 className="product-name">{product.name}</h1>
-
+                    <WishlistButton productId={id} size="large" showText={true} />
                     <div className="rating-summary">
                         <div className="stars-large">
                             {renderStars(Number(avgRating))}
@@ -275,6 +289,7 @@ export default function ProductDetail() {
 
                     <button
                         className="btn-add-cart-large"
+                        onClick={handleAddToCart}
                         disabled={product.stock === 0}
                     >
                         {product.stock === 0 ? "สินค้าหมด" : "เพิ่มลงตะกร้า"}
