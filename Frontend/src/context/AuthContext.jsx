@@ -1,14 +1,21 @@
-// frontend/src/context/AuthContext.jsx (FIXED)
-import { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
-import { authAPI } from '../utils/api';
+// frontend/src/context/AuthContext.jsx 
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
+import { authAPI } from "../utils/api";
 
 const AuthContext = createContext();
 
 const authReducer = (state, action) => {
   switch (action.type) {
-    case 'LOGIN_START':
+    case "LOGIN_START":
       return { ...state, loading: true, error: null };
-    case 'LOGIN_SUCCESS':
+    case "LOGIN_SUCCESS":
       return {
         ...state,
         loading: false,
@@ -17,7 +24,7 @@ const authReducer = (state, action) => {
         token: action.payload.token,
         error: null,
       };
-    case 'LOGIN_FAILURE':
+    case "LOGIN_FAILURE":
       return {
         ...state,
         loading: false,
@@ -26,7 +33,7 @@ const authReducer = (state, action) => {
         token: null,
         error: action.payload,
       };
-    case 'LOGOUT':
+    case "LOGOUT":
       return {
         ...state,
         isAuthenticated: false,
@@ -35,9 +42,9 @@ const authReducer = (state, action) => {
         loading: false,
         error: null,
       };
-    case 'SET_LOADING':
+    case "SET_LOADING":
       return { ...state, loading: action.payload };
-    case 'CLEAR_ERROR':
+    case "CLEAR_ERROR":
       return { ...state, error: null };
     default:
       return state;
@@ -57,60 +64,57 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      // If redirected from OAuth callback, grab token from URL and store it
       try {
         const params = new URLSearchParams(window.location.search);
-        const tokenFromUrl = params.get('token');
-        const authError = params.get('authError');
+        const tokenFromUrl = params.get("token");
+        const authError = params.get("authError");
+
         if (authError) {
-          console.warn('Auth error from OAuth callback:', authError);
-          // Remove authError from URL
-          params.delete('authError');
-          const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
-          window.history.replaceState({}, document.title, newUrl);
-        }
-        if (tokenFromUrl) {
-          // Save token to localStorage so the normal verification flow can pick it up
-          localStorage.setItem('authToken', tokenFromUrl);
-          // Remove token from URL to keep things clean
-          params.delete('token');
-          const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
+          console.warn("Auth error from OAuth callback:", authError);
+          params.delete("authError");
+          const newUrl =
+            window.location.pathname +
+            (params.toString() ? `?${params.toString()}` : "");
           window.history.replaceState({}, document.title, newUrl);
         }
 
+        if (tokenFromUrl) {
+          // เก็บ token ชั่วคราวใน sessionStorage แทน localStorage
+          sessionStorage.setItem("authToken", tokenFromUrl);
+          params.delete("token");
+          const newUrl =
+            window.location.pathname +
+            (params.toString() ? `?${params.toString()}` : "");
+          window.history.replaceState({}, document.title, newUrl);
+        }
       } catch (err) {
-        console.error('Error processing OAuth redirect params:', err);
+        console.error("Error processing OAuth redirect params:", err);
       }
 
-      const token = localStorage.getItem('authToken');
-      const savedUser = localStorage.getItem('user');
+      const token = sessionStorage.getItem("authToken");
+      const savedUser = null;
 
       if (token) {
         try {
           const response = await authAPI.verifyToken();
-          
+
           dispatch({
-            type: 'LOGIN_SUCCESS',
+            type: "LOGIN_SUCCESS",
             payload: {
               user: response.user,
               token: token,
             },
           });
-          // Persist verified user to localStorage if it wasn't already saved
-          if (!savedUser) {
-            // localStorage.setItem('user', JSON.stringify(response.user));
-          }
-          console.log('User data:', response.user);
-          console.log('Auth verified successfully');
+
+          console.log("User data verified:", response.user);
         } catch (error) {
-          console.error('Token verification failed:', error);
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          dispatch({ type: 'LOGOUT' });
+          console.error("Token verification failed:", error);
+          sessionStorage.removeItem("authToken");
+          dispatch({ type: "LOGOUT" });
         }
       } else {
-        console.log('⚠️ No token found, user not authenticated');
-        dispatch({ type: 'SET_LOADING', payload: false });
+        console.log("⚠️ No token found, user not authenticated");
+        dispatch({ type: "SET_LOADING", payload: false });
       }
     };
 
@@ -118,33 +122,30 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = useCallback(async (credentials) => {
-    dispatch({ type: 'LOGIN_START' });
+    dispatch({ type: "LOGIN_START" });
     try {
       const response = await authAPI.login(credentials);
-
-      // console.log('Login Response:', response);
-
-      // เก็บ Token และ User
       const token = response.accessToken || response.token;
-      
-      localStorage.setItem('authToken', token);
-      // localStorage.setItem('user', JSON.stringify(response.user));
+
+      // เก็บ token ไว้ใน sessionStorage
+      sessionStorage.setItem("authToken", token);
 
       dispatch({
-        type: 'LOGIN_SUCCESS',
+        type: "LOGIN_SUCCESS",
         payload: {
           user: response.user,
           token: token,
-          
         },
-      });console.log('User data:', response.user);
+      });
 
+      console.log("User data:", response.user);
       return { success: true, message: response.message };
     } catch (error) {
-      console.error(' Login error:', error);
-      const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+      console.error("Login error:", error);
+      const errorMessage =
+        error.response?.data?.error || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ";
       dispatch({
-        type: 'LOGIN_FAILURE',
+        type: "LOGIN_FAILURE",
         payload: errorMessage,
       });
       return { success: false, error: errorMessage };
@@ -152,20 +153,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const register = useCallback(async (userData) => {
-    dispatch({ type: 'LOGIN_START' });
+    dispatch({ type: "LOGIN_START" });
     try {
       const response = await authAPI.register(userData);
-
-      console.log(' Register Response:', response);
-
-      //  เก็บ Token และ User
       const token = response.accessToken || response.token;
-      
-      localStorage.setItem('authToken', token);
-      // localStorage.setItem('user', JSON.stringify(response.user));
+
+      // เก็บ token ไว้ใน sessionStorage
+      sessionStorage.setItem("authToken", token);
 
       dispatch({
-        type: 'LOGIN_SUCCESS',
+        type: "LOGIN_SUCCESS",
         payload: {
           user: response.user,
           token: token,
@@ -174,10 +171,11 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, message: response.message };
     } catch (error) {
-      console.error(' Register error:', error);
-      const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก';
+      console.error("Register error:", error);
+      const errorMessage =
+        error.response?.data?.error || "เกิดข้อผิดพลาดในการสมัครสมาชิก";
       dispatch({
-        type: 'LOGIN_FAILURE',
+        type: "LOGIN_FAILURE",
         payload: errorMessage,
       });
       return { success: false, error: errorMessage };
@@ -185,10 +183,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
-    console.log(' Logging out...');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    dispatch({ type: 'LOGOUT' });
+    console.log("Logging out...");
+    sessionStorage.removeItem("authToken");
+    dispatch({ type: "LOGOUT" });
   }, []);
 
   const forgotPassword = useCallback(async (email) => {
@@ -196,7 +193,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.forgotPassword(email);
       return { success: true, message: response.message };
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการขอรีเซ็ตรหัสผ่าน';
+      const errorMessage =
+        error.response?.data?.error || "เกิดข้อผิดพลาดในการขอรีเซ็ตรหัสผ่าน";
       return { success: false, error: errorMessage };
     }
   }, []);
@@ -206,40 +204,65 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.resetPassword(token, password);
       return { success: true, message: response.message };
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน';
+      const errorMessage =
+        error.response?.data?.error || "เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน";
       return { success: false, error: errorMessage };
     }
   }, []);
 
   const clearError = useCallback(() => {
-    dispatch({ type: 'CLEAR_ERROR' });
+    dispatch({ type: "CLEAR_ERROR" });
   }, []);
 
-  const hasRole = useCallback((role) => {
-    if (!state.user) return false;
-    if (Array.isArray(role)) {
-      return role.includes(state.user.role);
-    }
-    return state.user.role === role;
-  }, [state.user]);
+  const hasRole = useCallback(
+    (role) => {
+      if (!state.user) return false;
+      if (Array.isArray(role)) {
+        return role.includes(state.user.role);
+      }
+      return state.user.role === role;
+    },
+    [state.user]
+  );
 
-  const isAdmin = useCallback(() => hasRole('admin'), [hasRole]);
-  const isCustomer = useCallback(() => hasRole(['customer', 'admin']), [hasRole]);
-  const isVisitor = useCallback(() => !state.isAuthenticated, [state.isAuthenticated]);
+  const isAdmin = useCallback(() => hasRole("admin"), [hasRole]);
+  const isCustomer = useCallback(
+    () => hasRole(["customer", "admin"]),
+    [hasRole]
+  );
+  const isVisitor = useCallback(
+    () => !state.isAuthenticated,
+    [state.isAuthenticated]
+  );
 
-  const value = useMemo(() => ({
-    ...state,
-    login,
-    register,
-    logout,
-    forgotPassword,
-    resetPassword,
-    clearError,
-    hasRole,
-    isAdmin,
-    isCustomer,
-    isVisitor,
-  }), [state, login, register, logout, forgotPassword, resetPassword, clearError, hasRole, isAdmin, isCustomer, isVisitor]);
+  const value = useMemo(
+    () => ({
+      ...state,
+      login,
+      register,
+      logout,
+      forgotPassword,
+      resetPassword,
+      clearError,
+      hasRole,
+      isAdmin,
+      isCustomer,
+      isVisitor,
+    }),
+    [
+      state,
+      login,
+      register,
+      logout,
+      forgotPassword,
+      resetPassword,
+      clearError,
+      hasRole,
+      isAdmin,
+      isCustomer,
+      isVisitor,
+    ]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -247,7 +270,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
