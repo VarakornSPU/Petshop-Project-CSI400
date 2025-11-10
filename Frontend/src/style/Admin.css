@@ -1048,3 +1048,12 @@ td {
   background-color: #4CAF50;
   color: white;
 }
+
+.current-user-row {
+  background-color: #f0fdf4 !important;
+  border-left: 3px solid #10b981;
+}
+
+.current-user-row:hover {
+  background-color: #dcfce7 !important;
+}

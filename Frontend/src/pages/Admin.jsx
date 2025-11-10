@@ -1,3 +1,4 @@
+// Frontend/src/pages/Admin.jsx
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AddProductForm from "../components/AddProductForm";
