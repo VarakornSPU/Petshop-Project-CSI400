@@ -457,3 +457,36 @@
   color: #6b7280;
   text-align: center;
 }
+
+.btn-submit-1 {
+  position: relative;
+  width: 6rem;
+  padding: 1rem;
+  /* Updated to coral gradient */
+  background: linear-gradient(135deg, #ff8e53 0%, #ff6b6b 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+.btn-submit-1::before {
+  position: absolute;
+  inset: 0;
+  /* Updated reverse gradient */
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-submit-1:hover::before {
+  opacity: 1;
+}
+
+.btn-submit-1:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+}

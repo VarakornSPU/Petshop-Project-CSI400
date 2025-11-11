@@ -386,7 +386,7 @@ const Register = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" onClick={handlePrevStep} className="btn-submit" style={{ backgroundColor: '#6b7280' }}>
+              <button type="button" onClick={handlePrevStep} className="btn-submit-1" style={{ backgroundColor: '#6b7280' }}>
                 ← กลับ
               </button>
               <button type="submit" className="btn-submit" disabled={loading} style={{ flex: 1 }}>
