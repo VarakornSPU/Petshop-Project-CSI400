@@ -181,20 +181,38 @@ app.use("/cart", cartRouter);
 
 app.get("/api/products", async (req, res) => {
   try {
-    const { category } = req.query;
+    // รับค่า sort เพิ่มเข้ามา
+    const { category, sort } = req.query; 
 
-    console.log("📦 GET /api/products - category:", category);
+    console.log("📦 GET /api/products - category:", category, "sort:", sort);
 
     let query = "SELECT * FROM products";
     let params = [];
 
-    // ✅ ถ้ามีการกรอง category
     if (category && category !== "all") {
       query += " WHERE category = $1";
       params.push(category);
     }
 
-    query += " ORDER BY created_at DESC";
+    // ✅ เพิ่ม Logic การเรียงลำดับ (Sorting)
+    switch (sort) {
+      case "rating":
+      query += " ORDER BY rating DESC, reviews DESC"; // คะแนนเยอะสุดขึ้นก่อน
+        break;
+      case "reviews":
+        query += " ORDER BY reviews DESC, rating DESC"; // รีวิวเยอะสุดขึ้นก่อน
+        break;
+      case "price_asc":
+        query += " ORDER BY price ASC"; // ราคาต่ำ -> สูง
+        break;
+      case "price_desc":
+        query += " ORDER BY price DESC"; // ราคาสูง -> ต่ำ
+        break;
+      case "latest":
+      default:
+        query += " ORDER BY created_at DESC"; // ล่าสุด (ค่าเริ่มต้น)
+        break;
+    }
 
     console.log("🔍 SQL Query:", query);
     console.log("📝 Params:", params);

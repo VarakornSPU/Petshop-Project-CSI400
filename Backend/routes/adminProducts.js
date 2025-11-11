@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ✅ POST /api/admin/products — เพิ่มสินค้าใหม่
-router.post("/", upload.array("images", 10), async (req, res) => {
+router.post("/", upload.array("newImages", 10), async (req, res) => {
   try {
     const { name, description, category, price, stock } = req.body;
 

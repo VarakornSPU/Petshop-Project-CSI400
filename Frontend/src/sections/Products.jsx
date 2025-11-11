@@ -9,6 +9,7 @@ import SearchBar from '../components/SearchBar';
 export default function Products() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
+  const [sort, setSort] = useState("rating"); // ✅ เพิ่ม State สำหรับ Sort
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,9 +22,11 @@ export default function Products() {
         setLoading(true);
         setError(null);
 
-        const url = filter === "all"
-          ? "http://localhost:3001/api/products"
-          : `http://localhost:3001/api/products?category=${filter}`;
+        // ✅ ส่งค่า sort ไปยัง Backend
+        let url = `http://localhost:3001/api/products?sort=${sort}`;
+        if (filter !== "all") {
+          url += `&category=${filter}`;
+        }
 
         const res = await fetch(url);
 
@@ -51,7 +54,7 @@ export default function Products() {
     };
 
     fetchProducts();
-  }, [filter]);
+  }, [filter, sort]);
 
   useEffect(() => {
     const handler = (e) => setFilter(e.detail);
@@ -200,7 +203,29 @@ export default function Products() {
         </div>
         <div className="Search-Bar">
           <p>ค้นหาสินค้า :</p>
-            <SearchBar />
+          <SearchBar />
+          {/* ✅ เพิ่มส่วนนี้: ตัวเลือกการเรียงลำดับ */}
+          <div className="sort-container" >
+            <label htmlFor="sort-select">เรียงตาม:</label>
+            <select
+              id="sort-select"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid #ddd',
+                cursor: 'pointer',
+                marginLeft: '0.5rem'
+              }}
+            >
+              <option value="latest">ใหม่ล่าสุด</option>
+              <option value="reviews">รีวิวเยอะสุด</option>
+              <option value="rating">คะแนนสูงสุด</option>
+              <option value="price_asc">ราคา: ต่ำ - สูง</option>
+              <option value="price_desc">ราคา: สูง - ต่ำ</option>
+            </select>
+          </div>
         </div>
 
         <div className="products-grid" id="productsGrid">

@@ -258,3 +258,18 @@
     grid-template-columns: 1fr;
   }
 }
+
+.sort-container{
+  color: #e07856;
+    width: 13rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    outline: none;
+    transition: all 0.3s 
+ease;
+    font-family: inherit;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
