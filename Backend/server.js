@@ -38,8 +38,20 @@ try {
 
 const app = express();
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:5173',
+  'http://localhost:4000' // <-- เพิ่มบรรทัดนี้สำหรับ Swagger
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // อนุญาตถ้า request มาจากหนึ่งใน allowedOrigins หรือถ้าไม่มี origin (เช่น postman)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 

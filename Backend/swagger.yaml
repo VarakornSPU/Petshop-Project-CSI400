@@ -1,0 +1,1897 @@
+openapi: 3.0.0
+info:
+  title: Pet Shop API
+  description: เอกสาร API สำหรับโปรเจกต์ Petshop-Project-CSI400 (อัปเดตตาม Schema)
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001
+    description: เซิร์ฟเวอร์สำหรับพัฒนา (Local)
+
+tags:
+  - name: Auth
+    description: การยืนยันตัวตน (สมัครสมาชิก, เข้าสู่ระบบ, OAuth)
+  - name: User
+    description: การจัดการโปรไฟล์และบัญชีผู้ใช้
+  - name: Products
+    description: การเข้าถึงข้อมูลสินค้าและรีวิว (สำหรับลูกค้า)
+  - name: Cart
+    description: การจัดการตะกร้าสินค้า (สำหรับลูกค้า)
+  - name: Wishlist
+    description: การจัดการรายการที่ถูกใจ (สำหรับลูกค้า)
+  - name: Orders
+    description: การจัดการคำสั่งซื้อ (สำหรับลูกค้า)
+  - name: Payments
+    description: การจัดการการชำระเงิน
+  - name: Admin - Users
+    description: (Admin) การจัดการผู้ใช้ทั้งหมด
+  - name: Admin - Products
+    description: (Admin) การจัดการสินค้า (เพิ่ม/ลบ/แก้ไข)
+  - name: Admin - Orders
+    description: (Admin) การจัดการคำสั่งซื้อทั้งหมด
+
+paths:
+  # ======================================================
+  # Auth Routes
+  # ======================================================
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: สมัครสมาชิกใหม่
+      description: สร้างบัญชีผู้ใช้ใหม่พร้อมที่อยู่เริ่มต้น (อ้างอิงจาก routes/auth.js และ pages/Register.jsx)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterPayload'
+            examples:
+              default:
+                value:
+                  firstName: "สมชาย"
+                  lastName: "ใจดี"
+                  email: "somchai.j@example.com"
+                  phone: "0812345678"
+                  password: "password123"
+                  confirmPassword: "password123"
+                  address:
+                    recipientName: "สมชาย ใจดี"
+                    phone: "0812345678"
+                    addressLine1: "123/45 ซอยเพชรเกษม 1"
+                    addressLine2: "หมู่บ้านสุขใจ"
+                    subdistrict: "บางหว้า"
+                    district: "ภาษีเจริญ"
+                    province: "กรุงเทพมหานคร"
+                    postalCode: "10160"
+      responses:
+        '201':
+          description: สมัครสมาชิกสำเร็จ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: ข้อมูลไม่ถูกต้อง หรือ อีเมล/เบอร์โทรซ้ำ
+  
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: เข้าสู่ระบบ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginPayload'
+            examples:
+              adminLogin:
+                summary: ล็อกอินด้วย Admin (จาก users.json)
+                value:
+                  email: "admintest@gmail.com"
+                  password: "adminpassword" # (รหัสผ่านที่คุณใช้จริง)
+              customerLogin:
+                summary: ล็อกอินด้วย Customer (จาก users.json)
+                value:
+                  email: "custest@gmail.com"
+                  password: "password123" # (รหัสผ่านที่คุณใช้จริง)
+      responses:
+        '200':
+          description: เข้าสู่ระบบสำเร็จ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: อีเมลหรือรหัสผ่านไม่ถูกต้อง
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: ขอ Access Token ใหม่
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                refreshToken:
+                  type: string
+            examples:
+              default:
+                value:
+                  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: ได้รับ Token ใหม่สำเร็จ
+          content:
+            application/json:
+              schema:
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+        '401':
+          description: Refresh Token ไม่ถูกต้องหรือหมดอายุ
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: ออกจากระบบ
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                refreshToken:
+                  type: string
+            examples:
+              default:
+                value:
+                  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: ออกจากระบบสำเร็จ
+  
+  /api/auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: ขอรีเซ็ตรหัสผ่าน
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                  format: email
+            examples:
+              default:
+                value:
+                  email: "custest@gmail.com"
+      responses:
+        '200':
+          description: ส่งอีเมลรีเซ็ตสำเร็จ (หากมีอีเมลในระบบ)
+
+  /api/auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: ตั้งรหัสผ่านใหม่
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordPayload'
+            examples:
+              default:
+                value:
+                  token: "a1b2c3d4e5f6..."
+                  password: "newPassword123"
+      responses:
+        '200':
+          description: รีเซ็ตรหัสผ่านสำเร็จ
+        '400':
+          description: Token ไม่ถูกต้องหรือหมดอายุ
+
+  /api/auth/verify:
+    get:
+      tags:
+        - Auth
+      summary: ตรวจสอบ Token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token ถูกต้อง
+          content:
+            application/json:
+              schema:
+                properties:
+                  valid:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/UserSafe'
+        '401':
+          description: Token ไม่ถูกต้อง
+
+  /auth/google:
+    get:
+      tags:
+        - Auth
+      summary: เริ่มต้น Google OAuth
+      description: Redirect ไปยังหน้า Google Login
+
+  /auth/google/callback:
+    get:
+      tags:
+        - Auth
+      summary: Google OAuth Callback
+      description: Google ส่ง code กลับมา, เซิร์ฟเวอร์แลก Token และ redirect กลับ Frontend พร้อม JWT
+
+  # ======================================================
+  # User Profile & Account Routes
+  # ======================================================
+  /api/profile/me:
+    get:
+      tags:
+        - User
+      summary: ดึงข้อมูลโปรไฟล์ผู้ใช้
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: ข้อมูลโปรไฟล์
+          content:
+            application/json:
+              schema:
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserSafe'
+        '401':
+          description: ไม่ได้ยืนยันตัวตน
+    put:
+      tags:
+        - User
+      summary: อัปเดตข้อมูลโปรไฟล์
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfilePayload'
+            examples:
+              default:
+                value:
+                  firstName: "Customer"
+                  lastName: "Test (Edited)"
+                  phone: "0887654321"
+      responses:
+        '200':
+          description: อัปเดตสำเร็จ
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/UserSafe'
+        '400':
+          description: ข้อมูลไม่ถูกต้อง
+
+  /api/profile/change-password:
+    put:
+      tags:
+        - User
+      summary: เปลี่ยนรหัสผ่าน
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordPayload'
+            examples:
+              default:
+                value:
+                  currentPassword: "password123"
+                  newPassword: "newPassword456"
+      responses:
+        '200':
+          description: เปลี่ยนรหัสผ่านสำเร็จ
+        '400':
+          description: รหัสผ่านใหม่ไม่ถูกต้อง
+        '401':
+          description: รหัสผ่านปัจจุบันไม่ถูกต้อง
+
+  /api/user-account/delete-request:
+    post:
+      tags:
+        - User
+      summary: ขอลบบัญชีผู้ใช้ (Soft Delete)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                password:
+                  type: string
+                reason:
+                  type: string
+              examples:
+                default:
+                  value:
+                    password: "password123"
+                    reason: "ไม่ได้ใช้งานแล้ว"
+      responses:
+        '200':
+          description: ลบบัญชีสำเร็จ
+        '400':
+          description: ไม่สามารถลบได้ (เช่น มีออเดอร์ค้าง)
+        '401':
+          description: รหัสผ่านไม่ถูกต้อง
+
+  /api/user-account/can-delete:
+    get:
+      tags:
+        - User
+      summary: ตรวจสอบว่าสามารถลบบัญชีได้หรือไม่
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: สถานะการลบบัญชี
+          content:
+            application/json:
+              schema:
+                properties:
+                  canDelete:
+                    type: boolean
+                  activeOrders:
+                    type: integer
+                  
+  # ======================================================
+  # Addresses Routes (User)
+  # ======================================================
+  /api/addresses:
+    get:
+      tags:
+        - User
+      summary: ดึงที่อยู่ทั้งหมดของผู้ใช้
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: รายการที่อยู่
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Address'
+    post:
+      tags:
+        - User
+      summary: เพิ่มที่อยู่ใหม่
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAddressPayload'
+            examples:
+              default:
+                value:
+                  recipientName: "สมศรี รักสัตว์"
+                  phone: "0898765432"
+                  addressLine1: "555/99 อาคาร B"
+                  addressLine2: "คอนโดแมวเหมียว"
+                  subdistrict: "คลองจั่น"
+                  district: "บางกะปิ"
+                  province: "กรุงเทพมหานคร"
+                  postalCode: "10240"
+                  isDefault: true
+      responses:
+        '201':
+          description: สร้างที่อยู่สำเร็จ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+        '400':
+          description: ข้อมูลไม่ถูกต้อง
+
+  /api/addresses/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 2
+    put:
+      tags:
+        - User
+      summary: อัปเดตที่อยู่
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAddressPayload'
+            examples:
+              default:
+                value:
+                  recipientName: "สมศรี (ที่ทำงาน)"
+                  phone: "0898765432"
+                  addressLine1: "999 อาคารออฟฟิศ"
+                  addressLine2: "ชั้น 10"
+                  subdistrict: "สีลม"
+                  district: "บางรัก"
+                  province: "กรุงเทพมหานคร"
+                  postalCode: "10500"
+                  isDefault: false
+      responses:
+        '200':
+          description: อัปเดตสำเร็จ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+        '404':
+          description: ไม่พบที่อยู่
+    delete:
+      tags:
+        - User
+      summary: ลบที่อยู่ (Soft Delete)
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: ลบสำเร็จ
+        '400':
+          description: ไม่สามารถลบได้ (เช่น ใช้อยู่ในออเดอร์)
+        '404':
+          description: ไม่พบที่อยู่
+
+  /api/addresses/{id}/default:
+    put:
+      tags:
+        - User
+      summary: ตั้งเป็นที่อยู่เริ่มต้น
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 2
+      responses:
+        '200':
+          description: ตั้งค่าสำเร็จ
+        '404':
+          description: ไม่พบที่อยู่
+
+  /api/addresses/{id}/usage:
+    get:
+      tags:
+        - User
+      summary: ตรวจสอบการใช้งานที่อยู่
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 2
+      responses:
+        '200':
+          description: ข้อมูลการใช้งาน
+        '404':
+          description: ไม่พบที่อยู่
+
+  # ======================================================
+  # Products Routes (Public)
+  # ======================================================
+  /api/products:
+    get:
+      tags:
+        - Products
+      summary: ดึงรายการสินค้าทั้งหมด (สำหรับลูกค้า)
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [all, food, toys, accessories]
+            example: "food"
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [latest, rating, reviews, price_asc, price_desc]
+            example: "rating"
+      responses:
+        '200':
+          description: รายการสินค้า
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+                  
+  /api/products/search:
+    get:
+      tags:
+        - Products
+      summary: ค้นหาสินค้า
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "อาหารแมว"
+      responses:
+        '200':
+          description: ผลการค้นหา
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+
+  /api/products/{id}:
+    get:
+      tags:
+        - Products
+      summary: ดึงข้อมูลสินค้าชิ้นเดียว
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 11
+      responses:
+        '200':
+          description: ข้อมูลสินค้า
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: ไม่พบสินค้า
+
+  /api/products/{id}/reviews:
+    get:
+      tags:
+        - Products
+      summary: ดึงรีวิวทั้งหมดของสินค้า
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 14
+      responses:
+        '200':
+          description: รายการรีวิว
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+    post:
+      tags:
+        - Products
+      summary: เพิ่มรีวิวใหม่ (ต้องเคยซื้อ)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 14
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewReviewPayload'
+            examples:
+              default:
+                value:
+                  user_name: "Customer Test"
+                  rating: 5
+                  comment: "สินค้าดีมากครับ น้องแมวชอบ"
+      responses:
+        '201':
+          description: เพิ่มรีวิวสำเร็จ
+        '400':
+          description: รีวิวซ้ำ หรือยังไม่ได้ซื้อ
+
+  /api/products/{id}/reviews/{reviewId}:
+    delete:
+      tags:
+        - Products
+      summary: ลบรีวิว (เจ้าของ หรือ Admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 14
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 8
+      responses:
+        '200':
+          description: ลบรีวิวสำเร็จ
+        '403':
+          description: ไม่มีสิทธิ์ลบ
+        '404':
+          description: ไม่พบรีวิว
+
+  # ======================================================
+  # Cart Routes
+  # ======================================================
+  /cart:
+    get:
+      tags:
+        - Cart
+      summary: ดึงข้อมูลตะกร้าสินค้า
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: รายการสินค้าในตะกร้า
+          content:
+            application/json:
+              schema:
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CartItem'
+  /cart/add:
+    post:
+      tags:
+        - Cart
+      summary: เพิ่มสินค้าลงตะกร้า
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                productId:
+                  type: integer
+                quantity:
+                  type: integer
+              examples:
+                default:
+                  value:
+                    productId: 11
+                    quantity: 1
+      responses:
+        '200':
+          description: เพิ่มสินค้าสำเร็จ
+
+  /cart/update/{productId}:
+    put:
+      tags:
+        - Cart
+      summary: อัปเดตจำนวนสินค้า
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 11
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                quantity:
+                  type: integer
+              examples:
+                default:
+                  value:
+                    quantity: 3
+      responses:
+        '200':
+          description: อัปเดตสำเร็จ
+
+  /cart/remove/{productId}:
+    delete:
+      tags:
+        - Cart
+      summary: ลบสินค้าออกจากตะกร้า
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 11
+      responses:
+        '200':
+          description: ลบสำเร็จ
+
+  /cart/clear:
+    delete:
+      tags:
+        - Cart
+      summary: ล้างตะกร้าสินค้า
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: ล้างตะกร้าสำเร็จ
+
+  # ======================================================
+  # Wishlist Routes
+  # ======================================================
+  /api/wishlists:
+    get:
+      tags:
+        - Wishlist
+      summary: ดึงรายการที่ถูกใจ
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: รายการที่ถูกใจ
+          content:
+            application/json:
+              schema:
+                properties:
+                  wishlists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product' # ส่งกลับเป็นข้อมูล Product
+    post:
+      tags:
+        - Wishlist
+      summary: เพิ่มรายการที่ถูกใจ
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                product_id:
+                  type: integer
+              examples:
+                default:
+                  value:
+                    product_id: 12
+      responses:
+        '201':
+          description: เพิ่มสำเร็จ
+    delete:
+      tags:
+        - Wishlist
+      summary: ล้างรายการที่ถูกใจทั้งหมด
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: ล้างสำเร็จ
+
+  /api/wishlists/{productId}:
+    delete:
+      tags:
+        - Wishlist
+      summary: ลบรายการที่ถูกใจ (ทีละชิ้น)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 12
+      responses:
+        '200':
+          description: ลบสำเร็จ
+
+  /api/wishlists/check/{productId}:
+    get:
+      tags:
+        - Wishlist
+      summary: ตรวจสอบว่าสินค้าอยู่ใน Wishlist หรือไม่
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 12
+      responses:
+        '200':
+          description: สถานะ
+          content:
+            application/json:
+              schema:
+                properties:
+                  inWishlist:
+                    type: boolean
+
+  # ======================================================
+  # Orders Routes
+  # ======================================================
+  /api/orders:
+    get:
+      tags:
+        - Orders
+      summary: ดึงคำสั่งซื้อ (ของผู้ใช้)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: รายการคำสั่งซื้อ
+          content:
+            application/json:
+              schema:
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+    post:
+      tags:
+        - Orders
+      summary: สร้างคำสั่งซื้อใหม่
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewOrderPayload'
+            examples:
+              default:
+                value:
+                  items:
+                    - product_id: 11
+                      product_name: "Nano แชมพูนาโน"
+                      product_price: 220
+                      quantity: 1
+                      subtotal: 220
+                    - product_id: 12
+                      product_name: "ไม้แมว หนูแขวน"
+                      product_price: 70
+                      quantity: 2
+                      subtotal: 140
+                  shipping:
+                    name: "สมชาย ใจดี"
+                    phone: "0812345678"
+                    line1: "123/45 ซอยเพชรเกษม 1"
+                    subdistrict: "บางหว้า"
+                    district: "ภาษีเจริญ"
+                    province: "กรุงเทพมหานคร"
+                    postal_code: "10160"
+                  courierMethod: "standard"
+                  subtotal: 360
+                  shipping_fee: 0
+                  total: 360
+      responses:
+        '201':
+          description: สร้างคำสั่งซื้อสำเร็จ
+          content:
+            application/json:
+              schema:
+                properties:
+                  order:
+                    $ref: '#/components/schemas/Order'
+                  
+  /api/orders/check-purchase/{productId}:
+    get:
+      tags:
+        - Orders
+      summary: ตรวจสอบว่าเคยซื้อสินค้านี้หรือไม่
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 14
+      responses:
+        '200':
+          description: สถานะการซื้อ
+          content:
+            application/json:
+              schema:
+                properties:
+                  hasPurchased:
+                    type: boolean
+
+  /api/orders/{id}:
+    get:
+      tags:
+        - Orders
+      summary: ดึงข้อมูลคำสั่งซื้อ (เจ้าของ หรือ Admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 49
+      responses:
+        '200':
+          description: ข้อมูลคำสั่งซื้อ
+          content:
+            application/json:
+              schema:
+                properties:
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '403':
+          description: ไม่มีสิทธิ์
+        '404':
+          description: ไม่พบคำสั่งซื้อ
+
+  /api/orders/{id}/confirm-delivery:
+    put:
+      tags:
+        - Orders
+      summary: ยืนยันรับสินค้า (เจ้าของ)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 48
+      responses:
+        '200':
+          description: ยืนยันสำเร็จ
+        '400':
+          description: สถานะไม่ถูกต้อง (เช่น ยังไม่ได้จัดส่ง)
+
+  /api/orders/{id}/cancel:
+    put:
+      tags:
+        - Orders
+      summary: ขอยกเลิกคำสั่งซื้อ (เจ้าของ หรือ Admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 58
+      responses:
+        '200':
+          description: ยกเลิกสำเร็จ
+        '400':
+          description: ไม่สามารถยกเลิกได้ (เช่น จัดส่งแล้ว)
+
+  # ======================================================
+  # Payments Routes
+  # ======================================================
+  /api/payments:
+    post:
+      tags:
+        - Payments
+      summary: สร้างการชำระเงิน (Pending)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                order_id:
+                  type: integer
+                amount:
+                  type: number
+                payment_method:
+                  type: string
+                  enum: [mock, credit_card, bank_transfer, cash_on_delivery]
+              examples:
+                default:
+                  value:
+                    order_id: 58
+                    amount: 360.00
+                    payment_method: "mock"
+      responses:
+        '200':
+          description: สร้าง Payment (Pending) สำเร็จ
+          content:
+            application/json:
+              schema:
+                properties:
+                  payment:
+                    $ref: '#/components/schemas/Payment'
+        '400':
+          description: จำนวนเงินไม่ตรง
+        '404':
+          description: ไม่พบออเดอร์
+
+  /api/payments/{id}/success:
+    put:
+      tags:
+        - Payments
+      summary: ยืนยันการชำระเงิน (Mock)
+      description: (Mock Endpoint) ยืนยันว่าชำระเงินสำเร็จ, อัปเดตสถานะออเดอร์ และตัดสต็อก
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 52
+      responses:
+        '200':
+          description: ชำระเงินสำเร็จ
+        '400':
+          description: สต็อกไม่พอ หรือ ชำระไปแล้ว
+        '404':
+          description: ไม่พบ Payment
+
+  # ======================================================
+  # Admin: Users Routes
+  # ======================================================
+  /api/admin/users:
+    get:
+      tags:
+        - Admin - Users
+      summary: (Admin) ดึงผู้ใช้ทั้งหมด
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          schema:
+            type: string
+            example: "customer"
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: ['', customer, admin]
+            example: "customer"
+      responses:
+        '200':
+          description: รายการผู้ใช้
+        '403':
+          description: ไม่มีสิทธิ์ (Admin เท่านั้น)
+    post:
+      tags:
+        - Admin - Users
+      summary: (Admin) สร้างผู้ใช้ใหม่
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminNewUserPayload'
+            examples:
+              newAdmin:
+                value:
+                  email: "new.admin@example.com"
+                  password: "password123"
+                  firstName: "แอดมิน"
+                  lastName: "ใหม่"
+                  phone: "0899999999"
+                  role: "admin"
+      responses:
+        '201':
+          description: สร้างผู้ใช้สำเร็จ
+        '400':
+          description: อีเมลซ้ำ หรือ ข้อมูลไม่ถูกต้อง
+        '403':
+          description: ไม่มีสิทธิ์
+
+  /api/admin/users/{id}:
+    get:
+      tags:
+        - Admin - Users
+      summary: (Admin) ดึงข้อมูลผู้ใช้คนเดียว
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 4
+      responses:
+        '200':
+          description: ข้อมูลผู้ใช้
+        '404':
+          description: ไม่พบผู้ใช้
+    put:
+      tags:
+        - Admin - Users
+      summary: (Admin) อัปเดตข้อมูลผู้ใช้
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdateUserPayload'
+            examples:
+              default:
+                value:
+                  firstName: "Customer (แก้ไข)"
+                  lastName: "Test"
+                  phone: "0812345679"
+                  role: "customer"
+      responses:
+        '200':
+          description: อัปเดตสำเร็จ
+        '404':
+          description: ไม่พบผู้ใช้
+    delete:
+      tags:
+        - Admin - Users
+      summary: (Admin) ลบผู้ใช้ (Soft Delete)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: ลบสำเร็จ
+        '400':
+          description: ไม่สามารถลบได้ (มีออเดอร์ค้าง หรือลบตัวเอง)
+
+  /api/admin/users/{id}/ban:
+    post:
+      tags:
+        - Admin - Users
+      summary: (Admin) แบน หรือ ยกเลิกแบน ผู้ใช้
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                isBanned:
+                  type: boolean
+              examples:
+                ban:
+                  value:
+                    isBanned: true
+                unban:
+                  value:
+                    isBanned: false
+      responses:
+        '200':
+          description: อัปเดตสถานะแบนสำเร็จ
+
+  /api/admin/users/{id}/reset-password:
+    post:
+      tags:
+        - Admin - Users
+      summary: (Admin) รีเซ็ตรหัสผ่านผู้ใช้
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                newPassword:
+                  type: string
+                  minLength: 8
+              examples:
+                default:
+                  value:
+                    newPassword: "ResetPassword123"
+      responses:
+        '200':
+          description: รีเซ็ตสำเร็จ
+
+  /api/user-account/restore/{userId}:
+    post:
+      tags:
+        - Admin - Users
+      summary: (Admin) กู้คืนบัญชีผู้ใช้
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 3
+      responses:
+        '200':
+          description: กู้คืนสำเร็จ
+        '404':
+          description: ไม่พบบัญชีที่ถูกลบ
+
+  # ======================================================
+  # Admin: Products Routes
+  # ======================================================
+  /api/admin/products:
+    get:
+      tags:
+        - Admin - Products
+      summary: (Admin) ดึงสินค้าทั้งหมด (สำหรับ Admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: รายการสินค้า
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '403':
+          description: ไม่มีสิทธิ์
+    post:
+      tags:
+        - Admin - Products
+      summary: (Admin) เพิ่มสินค้าใหม่
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "อาหารแมว Kaniva"
+                description:
+                  type: string
+                  example: "สูตรเนื้อไก่ ปลาทูน่าและข้าว สำหรับแมวทุกวัย"
+                category:
+                  type: string
+                  enum: [food, toys, accessories]
+                  example: "food"
+                price:
+                  type: number
+                  example: 199
+                stock:
+                  type: integer
+                  example: 100
+                newImages:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: เพิ่มสินค้าสำเร็จ
+        '403':
+          description: ไม่มีสิทธิ์
+
+  /api/admin/products/{id}:
+    put:
+      tags:
+        - Admin - Products
+      summary: (Admin) แก้ไขสินค้า
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 11
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Nano แชมพู (แก้ไข)"
+                description:
+                  type: string
+                  example: "Nano Scrub Shampoo (ปรับปรุง)"
+                category:
+                  type: string
+                  enum: [food, toys, accessories]
+                  example: "accessories"
+                price:
+                  type: number
+                  example: 229
+                stock:
+                  type: integer
+                  example: 50
+                existingImages:
+                  type: string
+                  description: JSON string ของ array path รูปเดิม
+                  example: '["/uploads/nano-shom-1762589997422.jpg"]'
+                newImages:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: แก้ไขสำเร็จ
+        '404':
+          description: ไม่พบสินค้า
+    delete:
+      tags:
+        - Admin - Products
+      summary: (Admin) ลบสินค้า
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 11
+      responses:
+        '200':
+          description: ลบสินค้าสำเร็จ
+        '404':
+          description: ไม่พบสินค้า
+
+  # ======================================================
+  # Admin: Orders Routes
+  # ======================================================
+  /api/orders/admin:
+    get:
+      tags:
+        - Admin - Orders
+      summary: (Admin) ดึงคำสั่งซื้อทั้งหมด
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: รายการคำสั่งซื้อทั้งหมด
+          content:
+            application/json:
+              schema:
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  stats:
+                    type: object
+        '403':
+          description: ไม่มีสิทธิ์
+
+  /api/orders/{id}/status:
+    put:
+      tags:
+        - Admin - Orders
+      summary: (Admin) อัปเดตสถานะคำสั่งซื้อ
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 58
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                status:
+                  type: string
+                  enum: [pending_payment, paid, preparing, ready_to_ship, shipping, completed, cancelled]
+              examples:
+                default:
+                  value:
+                    status: "preparing"
+      responses:
+        '200':
+          description: อัปเดตสถานะสำเร็จ
+        '400':
+          description: สถานะไม่ถูกต้อง
+        '404':
+          description: ไม่พบคำสั่งซื้อ
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "ใส่ Access Token (JWT) ที่ได้จากการ Login (ตัวอย่าง: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...) **ไม่ต้องใส่ 'Bearer' นำหน้า**"
+
+  schemas:
+    # ==================== Payloads (Request Bodies) ====================
+    NewAddressPayload:
+      type: object
+      description: ข้อมูลสำหรับสร้างหรืออัปเดตที่อยู่
+      properties:
+        recipientName:
+          type: string
+          example: "สมศรี รักสัตว์"
+        phone:
+          type: string
+          example: "0898765432"
+        addressLine1:
+          type: string
+          example: "555/99 อาคาร B"
+        addressLine2:
+          type: string
+          example: "คอนโดแมวเหมียว"
+        subdistrict:
+          type: string
+          example: "คลองจั่น"
+        district:
+          type: string
+          example: "บางกะปิ"
+        province:
+          type: string
+          example: "กรุงเทพมหานคร"
+        postalCode:
+          type: string
+          example: "10240"
+        isDefault:
+          type: boolean
+          example: false
+      required: [recipientName, phone, addressLine1, subdistrict, district, province, postalCode]
+
+    RegisterPayload:
+      type: object
+      description: ข้อมูลสำหรับสมัครสมาชิก
+      properties:
+        firstName:
+          type: string
+          example: "สมชาย"
+        lastName:
+          type: string
+          example: "ใจดี"
+        email:
+          type: string
+          format: email
+          example: "somchai.j@example.com"
+        phone:
+          type: string
+          example: "0812345678"
+        password:
+          type: string
+          minLength: 8
+          example: "password123"
+        confirmPassword:
+          type: string
+          example: "password123"
+        address:
+          $ref: '#/components/schemas/NewAddressPayload'
+      required: [firstName, lastName, email, password, confirmPassword, address]
+      
+    LoginPayload:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "admin@example.com"
+        password:
+          type: string
+          example: "adminpassword"
+      required: [email, password]
+
+    ResetPasswordPayload:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "a1b2c3d4e5f6..."
+        password:
+          type: string
+          minLength: 8
+          example: "newPassword123"
+      required: [token, password]
+
+    UpdateProfilePayload:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: "สมชาย (แก้ไข)"
+        lastName:
+          type: string
+          example: "ใจดี"
+        phone:
+          type: string
+          example: "0812345679"
+      
+    ChangePasswordPayload:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          example: "password123"
+        newPassword:
+          type: string
+          minLength: 8
+          example: "newPassword456"
+      required: [currentPassword, newPassword]
+      
+    NewReviewPayload:
+      type: object
+      properties:
+        user_name:
+          type: string
+          example: "สมชาย ใจดี"
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        comment:
+          type: string
+          example: "สินค้าดีมากครับ น้องแมวชอบ"
+      required: [user_name, rating]
+
+    NewOrderPayload:
+      type: object
+      description: ข้อมูลสำหรับสร้างออเดอร์ใหม่
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              product_id:
+                type: integer
+              product_name:
+                type: string
+              product_price:
+                type: number
+              quantity:
+                type: integer
+              subtotal:
+                type: number
+        shipping:
+          type: object
+          description: Snapshot ของที่อยู่ตอนสั่งซื้อ
+          properties:
+            name: { type: string }
+            phone: { type: string }
+            line1: { type: string }
+            subdistrict: { type: string }
+            district: { type: string }
+            province: { type: string }
+            postal_code: { type: string }
+        courierMethod:
+          type: string
+          example: "standard"
+        subtotal:
+          type: number
+          example: 1870
+        shipping_fee:
+          type: number
+          example: 0
+        total:
+          type: number
+          example: 1870
+          
+    AdminNewUserPayload:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "new.admin@example.com"
+        password:
+          type: string
+          example: "password123"
+        firstName:
+          type: string
+          example: "แอดมิน"
+        lastName:
+          type: string
+          example: "ใหม่"
+        phone:
+          type: string
+          example: "0899999999"
+        role:
+          type: string
+          enum: [customer, admin]
+          example: "admin"
+      required: [email, password, firstName, lastName, role]
+      
+    AdminUpdateUserPayload:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: "สมชาย (แก้ไข)"
+        lastName:
+          type: string
+          example: "ใจดี"
+        phone:
+          type: string
+          example: "0812345679"
+        role:
+          type: string
+          enum: [customer, admin]
+          example: "customer"
+      required: [firstName, lastName, role]
+
+    # ==================== Responses ====================
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserSafe'
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+          
+    User:
+      type: object
+      description: โมเดล User จากตาราง users
+      properties:
+        id: { type: integer }
+        email: { type: string, format: email }
+        password_hash: { type: string }
+        first_name: { type: string }
+        last_name: { type: string }
+        phone: { type: string }
+        role: { type: string, enum: [customer, admin] }
+        is_banned: { type: boolean }
+        is_deleted: { type: boolean }
+        deleted_at: { type: string, format: date-time }
+        deleted_reason: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        last_login: { type: string, format: date-time }
+        google_id: { type: string }
+        reset_token_hash: { type: string }
+        reset_token_expires: { type: string, format: date-time }
+        reset_token: { type: string }
+
+    UserSafe:
+      type: object
+      description: ข้อมูล User ที่ปลอดภัยสำหรับส่งให้ Client
+      properties:
+        id: { type: integer, example: 1 }
+        email: { type: string, format: email, example: "user@example.com" }
+        first_name: { type: string, example: "สมชาย" }
+        last_name: { type: string, example: "ใจดี" }
+        phone: { type: string, example: "0812345678" }
+        role: { type: string, enum: [customer, admin], example: "customer" }
+        
+    Product:
+      type: object
+      description: โมเดล Product จากตาราง products
+      properties:
+        id: { type: integer, example: 11 }
+        name: { type: string, example: "Nano แชมพูนาโน" }
+        description: { type: string, example: "แชมพูสำหรับสัตว์เลี้ยง 280ml." }
+        category: { type: string, example: "accessories" }
+        price: { type: number, format: "float", example: 220.00 }
+        stock: { type: integer, example: 48 }
+        images: { type: array, items: { type: string }, example: ["/uploads/nano-shom-1762589997422.jpg"] }
+        rating: { type: number, format: "float", example: 0.0 }
+        reviews: { type: integer, example: 0 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Address:
+      type: object
+      description: โมเดล Address จากตาราง addresses
+      properties:
+        id: { type: integer, example: 1 }
+        user_id: { type: integer, example: 1 }
+        recipient_name: { type: string, example: "สมชาย ใจดี" }
+        phone: { type: string, example: "0812345678" }
+        address_line1: { type: string, example: "123/45 ซอยเพชรเกษม 1" }
+        address_line2: { type: string, example: "หมู่บ้านสุขใจ" }
+        subdistrict: { type: string, example: "บางหว้า" }
+        district: { type: string, example: "ภาษีเจริญ" }
+        province: { type: string, example: "กรุงเทพมหานคร" }
+        postal_code: { type: string, example: "10160" }
+        is_default: { type: boolean, example: true }
+        is_deleted: { type: boolean, example: false }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CartItem:
+      type: object
+      description: โมเดล CartItem จากตาราง cart_items
+      properties:
+        id: { type: integer, description: "product_id", example: 11 }
+        name: { type: string, example: "Nano แชมพูนาโน" }
+        price: { type: number, example: 220.00 }
+        images: { type: array, items: { type: string }, example: ["/uploads/nano-shom-1762589997422.jpg"] }
+        quantity: { type: integer, example: 2 }
+        
+    Review:
+      type: object
+      description: โมเดล Review จากตาราง product_reviews
+      properties:
+        id: { type: integer, example: 8 }
+        product_id: { type: integer, example: 14 }
+        user_id: { type: integer, example: 3 }
+        user_name: { type: string, example: "admintest" }
+        rating: { type: integer, example: 5 }
+        comment: { type: string, example: "" }
+        created_at: { type: string, format: date-time }
+        
+    Order:
+      type: object
+      description: โมเดล Order จากตาราง orders
+      properties:
+        id: { type: integer, example: 58 }
+        user_id: { type: integer, example: 3 }
+        order_number: { type: string, example: "ORD-MHUURI1I" }
+        status: { 
+          type: string, 
+          enum: [pending_payment, paid, preparing, ready_to_ship, shipping, completed, cancelled],
+          example: "pending_payment"
+        }
+        shipping_recipient_name: { type: string, example: "สมชาย ใจดี" }
+        shipping_phone: { type: string, example: "0812345678" }
+        shipping_address_line1: { type: string, example: "123/45 ซอยเพชรเกษม 1" }
+        shipping_address_line2: { type: string, example: "" }
+        shipping_subdistrict: { type: string, example: "บางหว้า" }
+        shipping_district: { type: string, example: "ภาษีเจริญ" }
+        shipping_province: { type: string, example: "กรุงเทพมหานคร" }
+        shipping_postal_code: { type: string, example: "10160" }
+        courier_method: { type: string, example: "standard" }
+        subtotal: { type: number, example: 1870.00 }
+        shipping_fee: { type: number, example: 0 }
+        total: { type: number, example: 1870.00 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        delivered_at: { type: string, format: date-time }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+            
+    OrderItem:
+      type: object
+      description: โมเดล OrderItem จากตาราง order_items
+      properties:
+        id: { type: integer }
+        order_id: { type: integer }
+        product_id: { type: integer, example: 11 }
+        product_name: { type: string, example: "Nano แชมพูนาโน" }
+        product_price: { type: number, example: 220.00 }
+        quantity: { type: integer, example: 1 }
+        subtotal: { type: number, example: 220.00 }
+
+    Payment:
+      type: object
+      description: โมเดล Payment จากตาราง payments
+      properties:
+        id: { type: integer }
+        order_id: { type: integer }
+        user_id: { type: integer }
+        payment_method: { type: string, example: "mock" }
+        amount: { type: number, example: 1870.00 }
+        payment_status: { 
+          type: string, 
+          enum: [pending, success, failed, refunded],
+          example: "pending"
+        }
+        transaction_id: { type: string, example: "MOCK-12345" }
+        payment_date: { type: string, format: date-time }
