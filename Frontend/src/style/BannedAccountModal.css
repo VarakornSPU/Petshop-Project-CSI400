@@ -1,0 +1,230 @@
+/* Frontend/src/style/BannedAccountModal.css */
+
+.banned-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.banned-modal {
+  background: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.banned-modal-header {
+  text-align: center;
+  padding: 40px 32px 24px;
+  border-bottom: 1px solid #fee2e2;
+  background: linear-gradient(180deg, #fef2f2 0%, white 100%);
+}
+
+.banned-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.banned-icon svg {
+  width: 48px;
+  height: 48px;
+  color: white;
+}
+
+.banned-modal-header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #dc2626;
+  line-height: 1.3;
+}
+
+.banned-modal-body {
+  padding: 32px;
+}
+
+.banned-message {
+  text-align: center;
+  font-size: 1rem;
+  color: #374151;
+  line-height: 1.7;
+  margin: 0 0 16px 0;
+}
+
+.banned-message strong {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.banned-notice {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background-color: #eff6ff;
+  border: 2px solid #bfdbfe;
+  border-radius: 12px;
+  margin-top: 24px;
+}
+
+.banned-notice svg {
+  width: 24px;
+  height: 24px;
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.banned-notice p {
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: #1e40af;
+  line-height: 1.6;
+}
+
+.banned-notice p:first-child {
+  margin-top: 0;
+}
+
+.banned-notice p:last-child {
+  margin-bottom: 0;
+}
+
+.banned-notice strong {
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.support-email {
+  font-weight: 600;
+  color: #2563eb;
+  margin-top: 12px;
+}
+
+.banned-modal-footer {
+  padding: 24px 32px;
+  border-top: 1px solid #f3f4f6;
+  background-color: #fafafa;
+  border-radius: 0 0 20px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-understand {
+  padding: 14px 40px;
+  border: none;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+  min-width: 200px;
+}
+
+.btn-understand:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-understand:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 15px 30px -5px rgba(220, 38, 38, 0.4);
+  }
+}
+
+@media (max-width: 640px) {
+  .banned-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .banned-modal-header {
+    padding: 32px 20px 20px;
+  }
+  
+  .banned-icon {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .banned-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .banned-modal-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .banned-modal-body {
+    padding: 24px 20px;
+  }
+  
+  .banned-notice {
+    flex-direction: column;
+    padding: 16px;
+  }
+  
+  .banned-modal-footer {
+    padding: 20px;
+  }
+  
+  .btn-understand {
+    width: 100%;
+    min-width: 0;
+  }
+}

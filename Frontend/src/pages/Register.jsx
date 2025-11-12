@@ -213,7 +213,7 @@ const Register = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">เบอร์โทรศัพท์</label>
+              <label className="form-label">เบอร์โทรศัพท์ <span className="form-required">*</span></label>
               <input name="phone" type="tel" className="form-input" value={formData.phone} onChange={handleChange} placeholder="08X-XXX-XXXX" />
               {validationErrors.phone && <div className="form-error">⚠ {validationErrors.phone}</div>}
             </div>

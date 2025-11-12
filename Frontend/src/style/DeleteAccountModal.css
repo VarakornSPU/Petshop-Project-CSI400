@@ -1,0 +1,533 @@
+/* Frontend/src/style/DeleteAccountModal.css */
+
+/* Modal Overlay */
+.delete-account-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Container */
+.delete-account-modal {
+  background: white;
+  border-radius: 20px;
+  max-width: 550px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.delete-account-modal-header {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 20px 20px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.delete-account-modal-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: pulse-bg 3s ease-in-out infinite;
+}
+
+@keyframes pulse-bg {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+}
+
+.delete-account-modal-header h3 {
+  color: white;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.delete-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 1;
+}
+
+.delete-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Body */
+.delete-account-modal-body {
+  padding: 2rem;
+}
+
+/* Warning Box */
+.delete-warning {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  border-left: 4px solid #f59e0b;
+  margin-bottom: 1.5rem;
+  animation: slideInLeft 0.4s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.delete-warning.error {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-left-color: #dc2626;
+}
+
+.delete-warning svg {
+  width: 28px;
+  height: 28px;
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.delete-warning.error svg {
+  color: #dc2626;
+}
+
+.delete-warning > div {
+  flex: 1;
+}
+
+.delete-warning strong {
+  display: block;
+  font-size: 1rem;
+  color: #78350f;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.delete-warning.error strong {
+  color: #991b1b;
+}
+
+.delete-warning p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: #92400e;
+  line-height: 1.6;
+}
+
+.delete-warning.error p {
+  color: #7f1d1d;
+}
+
+.delete-warning ul {
+  margin: 0.75rem 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.delete-warning ul li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.delete-warning ul li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #d97706;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Form Group */
+.delete-account-modal-body .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.delete-account-modal-body .form-group label {
+  display: block;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.delete-account-modal-body .form-group .required {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+/* Password Input Wrapper */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.delete-password-input {
+  width: 100%;
+  padding: 0.875rem 3rem 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f9fafb;
+}
+
+.delete-password-input:focus {
+  outline: none;
+  border-color: #dc2626;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0.25rem;
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+.password-toggle-btn:hover {
+  transform: scale(1.2);
+}
+
+/* Textarea */
+.delete-reason-textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  transition: all 0.3s ease;
+  background: #f9fafb;
+}
+
+.delete-reason-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.delete-reason-textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Modal Footer */
+.delete-account-modal-footer {
+  padding: 1.5rem 2rem 2rem;
+  background: #f9fafb;
+  border-radius: 0 0 20px 20px;
+  display: flex;
+  gap: 1rem;
+  border-top: 2px solid #e5e7eb;
+}
+
+/* Buttons */
+.btn-cancel-delete,
+.btn-confirm-delete {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-cancel-delete {
+  background: #e5e7eb;
+  color: #4b5563;
+  border: 2px solid #d1d5db;
+}
+
+.btn-cancel-delete:hover {
+  background: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-confirm-delete {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.4);
+}
+
+.btn-confirm-delete:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.5);
+}
+
+.btn-confirm-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Loading State */
+.btn-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Scrollbar Styling */
+.delete-account-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.delete-account-modal::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.delete-account-modal::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+}
+
+.delete-account-modal::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .delete-account-modal {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+
+  .delete-account-modal-header {
+    padding: 1.5rem;
+  }
+
+  .delete-account-modal-header h3 {
+    font-size: 1.5rem;
+  }
+
+  .delete-account-modal-body {
+    padding: 1.5rem;
+  }
+
+  .delete-account-modal-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    flex-direction: column;
+  }
+
+  .btn-cancel-delete,
+  .btn-confirm-delete {
+    width: 100%;
+  }
+
+  .delete-warning {
+    padding: 1rem;
+  }
+
+  .delete-warning ul li {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .delete-account-modal-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .delete-modal-close {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+}
+
+/* Animation for modal entrance */
+.delete-account-modal-overlay.closing {
+  animation: fadeOut 0.2s ease-out forwards;
+}
+
+.delete-account-modal-overlay.closing .delete-account-modal {
+  animation: slideDown 0.2s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}
+
+.btn-delete-account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 2px solid #dc2626;
+  background: white;
+  color: #dc2626;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-delete-account:hover {
+  background: #dc2626;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+}
+
+.btn-delete-account svg {
+  width: 18px;
+  height: 18px;
+}
+
+.profile-card.danger-zone {
+  border: 2px solid #fecaca;
+  background: linear-gradient(135deg, #fef2f2 0%, white 100%);
+}
+
+.danger-zone-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+.danger-zone-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.danger-zone-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.5;
+}

@@ -1,7 +1,8 @@
-// Frontend/src/pages/Login.jsx
+// Frontend/src/pages/Login.jsx 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BannedAccountModal from '../components/BannedAccountModal';
 import '../style/Auth.css';
 import '../style/GoogleAuth.css';
 
@@ -13,7 +14,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState('');
 
-  const { login, loading, error, isAuthenticated, clearError } = useAuth();
+  const { login, loading, error, isAuthenticated, isBanned, clearError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,14 +40,21 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
+    
     const result = await login(formData);
+    
     if (result.success) {
       setMessage(result.message);
     }
+    // isBanned will be set automatically by AuthContext
   };
 
   const handleGoogleLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  };
+
+  const handleCloseBannedModal = () => {
+    clearError();
   };
 
   return (
@@ -129,7 +137,7 @@ const Login = () => {
           </div>
 
           {/* Alert Messages */}
-          {error && (
+          {error && !isBanned && (
             <div className="alert alert-error">
               <svg fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -192,6 +200,12 @@ const Login = () => {
           </p>
         </div>
       </div>
+
+      {/*  Banned Account Modal - Show when isBanned is true */}
+      <BannedAccountModal 
+        isOpen={isBanned}
+        onClose={handleCloseBannedModal}
+      />
     </div>
   );
 };

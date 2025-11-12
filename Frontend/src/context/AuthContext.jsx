@@ -1,4 +1,4 @@
-// frontend/src/context/AuthContext.jsx (FIXED)
+// frontend/src/context/AuthContext.jsx 
 import { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { authAPI } from '../utils/api';
 
@@ -26,6 +26,16 @@ const authReducer = (state, action) => {
         token: null,
         error: action.payload,
       };
+    case 'LOGIN_BANNED':
+      return {
+        ...state,
+        loading: false,
+        isAuthenticated: false,
+        user: null,
+        token: null,
+        error: action.payload,
+        isBanned: true,
+      };
     case 'LOGOUT':
       return {
         ...state,
@@ -34,11 +44,12 @@ const authReducer = (state, action) => {
         token: null,
         loading: false,
         error: null,
+        isBanned: false,
       };
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'CLEAR_ERROR':
-      return { ...state, error: null };
+      return { ...state, error: null, isBanned: false };
     default:
       return state;
   }
@@ -50,6 +61,7 @@ const initialState = {
   token: null,
   loading: true,
   error: null,
+  isBanned: false,
 };
 
 export const AuthProvider = ({ children }) => {
@@ -57,27 +69,24 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      // If redirected from OAuth callback, grab token from URL and store it
       try {
         const params = new URLSearchParams(window.location.search);
         const tokenFromUrl = params.get('token');
         const authError = params.get('authError');
+        
         if (authError) {
           console.warn('Auth error from OAuth callback:', authError);
-          // Remove authError from URL
           params.delete('authError');
           const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
           window.history.replaceState({}, document.title, newUrl);
         }
+        
         if (tokenFromUrl) {
-          // Save token to localStorage so the normal verification flow can pick it up
           localStorage.setItem('authToken', tokenFromUrl);
-          // Remove token from URL to keep things clean
           params.delete('token');
           const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
           window.history.replaceState({}, document.title, newUrl);
         }
-
       } catch (err) {
         console.error('Error processing OAuth redirect params:', err);
       }
@@ -96,7 +105,7 @@ export const AuthProvider = ({ children }) => {
               token: token,
             },
           });
-          // Persist verified user to localStorage if it wasn't already saved
+          
           if (!savedUser) {
             localStorage.setItem('user', JSON.stringify(response.user));
           }
@@ -104,9 +113,18 @@ export const AuthProvider = ({ children }) => {
           console.log('Auth verified successfully');
         } catch (error) {
           console.error('Token verification failed:', error);
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          dispatch({ type: 'LOGOUT' });
+          
+          // ✅ Check if banned
+          if (error.response?.status === 403) {
+            dispatch({ 
+              type: 'LOGIN_BANNED',
+              payload: 'บัญชีของคุณถูกระงับการใช้งาน'
+            });
+          } else {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            dispatch({ type: 'LOGOUT' });
+          }
         }
       } else {
         console.log('⚠️ No token found, user not authenticated');
@@ -122,9 +140,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login(credentials);
 
-      // console.log('Login Response:', response);
+      console.log('Login Response:', response);
 
-      // เก็บ Token และ User
       const token = response.accessToken || response.token;
       
       localStorage.setItem('authToken', token);
@@ -135,19 +152,36 @@ export const AuthProvider = ({ children }) => {
         payload: {
           user: response.user,
           token: token,
-          
         },
-      });console.log('User data:', response.user);
+      });
+      
+      console.log('User data:', response.user);
 
       return { success: true, message: response.message };
     } catch (error) {
-      console.error(' Login error:', error);
+      console.error('Login error:', error);
+      
+      // ✅ Check if banned (403 or error message contains ban keywords)
+      const isBannedError = error.response?.status === 403 || 
+                           error.response?.data?.error?.includes('แบน') ||
+                           error.response?.data?.error?.includes('ระงับ') ||
+                           error.response?.data?.error?.includes('banned');
+      
       const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
-      dispatch({
-        type: 'LOGIN_FAILURE',
-        payload: errorMessage,
-      });
-      return { success: false, error: errorMessage };
+      
+      if (isBannedError) {
+        dispatch({
+          type: 'LOGIN_BANNED',
+          payload: errorMessage,
+        });
+      } else {
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: errorMessage,
+        });
+      }
+      
+      return { success: false, error: errorMessage, isBanned: isBannedError };
     }
   }, []);
 
@@ -156,9 +190,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.register(userData);
 
-      console.log(' Register Response:', response);
+      console.log('Register Response:', response);
 
-      //  เก็บ Token และ User
       const token = response.accessToken || response.token;
       
       localStorage.setItem('authToken', token);
@@ -174,7 +207,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, message: response.message };
     } catch (error) {
-      console.error(' Register error:', error);
+      console.error('Register error:', error);
       const errorMessage = error.response?.data?.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก';
       dispatch({
         type: 'LOGIN_FAILURE',
@@ -185,7 +218,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
-    console.log(' Logging out...');
+    console.log('Logging out...');
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     dispatch({ type: 'LOGOUT' });

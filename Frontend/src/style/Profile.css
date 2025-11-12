@@ -1,9 +1,4 @@
 /* Frontend/src/style/Profile.css */
-
-/* ========================================
-   PROFILE PAGE
-   ======================================== */
-
 .profile-page {
   min-height: 100vh;
   background: #f7fafc;
@@ -14,10 +9,6 @@
   max-width: 1200px;
   margin: 0 auto;
 }
-
-/* ========================================
-   PROFILE HEADER
-   ======================================== */
 
 .profile-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -62,10 +53,6 @@
   font-size: 0.875rem;
 }
 
-/* ========================================
-   TABS
-   ======================================== */
-
 .profile-tabs {
   display: flex;
   gap: 1rem;
@@ -104,10 +91,6 @@
   border-color: transparent;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
-
-/* ========================================
-   PROFILE CARD
-   ======================================== */
 
 .profile-card {
   background: white;
@@ -155,10 +138,6 @@
   transform: translateY(-2px);
 }
 
-/* ========================================
-   PROFILE INFO (READ MODE)
-   ======================================== */
-
 .profile-info {
   display: grid;
   gap: 1.5rem;
@@ -182,10 +161,6 @@
   color: #2d3748;
   font-size: 1rem;
 }
-
-/* ========================================
-   PROFILE FORM (EDIT MODE)
-   ======================================== */
 
 .profile-form {
   display: flex;
@@ -277,10 +252,6 @@
   background: #cbd5e0;
 }
 
-/* ========================================
-   PASSWORD INPUT
-   ======================================== */
-
 .password-input {
   position: relative;
   display: flex;
@@ -306,10 +277,6 @@
 .password-input button:hover {
   transform: scale(1.1);
 }
-
-/* ========================================
-   SECURITY INFO
-   ======================================== */
 
 .security-info {
   display: flex;
@@ -344,10 +311,6 @@
   color: #718096;
   font-size: 0.875rem;
 }
-
-/* ========================================
-   ADDRESS SECTION
-   ======================================== */
 
 .address-section {
   background: white;
@@ -393,10 +356,6 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
-
-/* ========================================
-   ADDRESSES GRID
-   ======================================== */
 
 .addresses-grid {
   display: grid;
@@ -499,10 +458,6 @@
   background: #fed7d7;
 }
 
-/* ========================================
-   MODAL
-   ======================================== */
-
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -597,9 +552,6 @@
   flex: 1;
 }
 
-/* ========================================
-   EMPTY STATE
-   ======================================== */
 
 .empty-state {
   text-align: center;
@@ -618,10 +570,6 @@
   font-size: 1.125rem;
   margin-bottom: 1.5rem;
 }
-
-/* ========================================
-   RESPONSIVE
-   ======================================== */
 
 @media (max-width: 768px) {
   .profile-header {
