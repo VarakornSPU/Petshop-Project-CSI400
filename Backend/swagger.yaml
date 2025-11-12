@@ -44,7 +44,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterPayload'
+              $ref: "#/components/schemas/RegisterPayload"
             examples:
               default:
                 value:
@@ -64,15 +64,15 @@ paths:
                     province: "กรุงเทพมหานคร"
                     postalCode: "10160"
       responses:
-        '201':
+        "201":
           description: สมัครสมาชิกสำเร็จ
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '400':
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
           description: ข้อมูลไม่ถูกต้อง หรือ อีเมล/เบอร์โทรซ้ำ
-  
+
   /api/auth/login:
     post:
       tags:
@@ -83,7 +83,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginPayload'
+              $ref: "#/components/schemas/LoginPayload"
             examples:
               adminLogin:
                 summary: ล็อกอินด้วย Admin (จาก users.json)
@@ -96,13 +96,13 @@ paths:
                   email: "custest@gmail.com"
                   password: "password123" # (รหัสผ่านที่คุณใช้จริง)
       responses:
-        '200':
+        "200":
           description: เข้าสู่ระบบสำเร็จ
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '401':
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
           description: อีเมลหรือรหัสผ่านไม่ถูกต้อง
 
   /api/auth/refresh:
@@ -123,7 +123,7 @@ paths:
                 value:
                   refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       responses:
-        '200':
+        "200":
           description: ได้รับ Token ใหม่สำเร็จ
           content:
             application/json:
@@ -133,7 +133,7 @@ paths:
                     type: string
                   refreshToken:
                     type: string
-        '401':
+        "401":
           description: Refresh Token ไม่ถูกต้องหรือหมดอายุ
 
   /api/auth/logout:
@@ -155,9 +155,9 @@ paths:
                 value:
                   refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       responses:
-        '200':
+        "200":
           description: ออกจากระบบสำเร็จ
-  
+
   /api/auth/forgot-password:
     post:
       tags:
@@ -177,7 +177,7 @@ paths:
                 value:
                   email: "custest@gmail.com"
       responses:
-        '200':
+        "200":
           description: ส่งอีเมลรีเซ็ตสำเร็จ (หากมีอีเมลในระบบ)
 
   /api/auth/reset-password:
@@ -190,16 +190,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ResetPasswordPayload'
+              $ref: "#/components/schemas/ResetPasswordPayload"
             examples:
               default:
                 value:
                   token: "a1b2c3d4e5f6..."
                   password: "newPassword123"
       responses:
-        '200':
+        "200":
           description: รีเซ็ตรหัสผ่านสำเร็จ
-        '400':
+        "400":
           description: Token ไม่ถูกต้องหรือหมดอายุ
 
   /api/auth/verify:
@@ -210,7 +210,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Token ถูกต้อง
           content:
             application/json:
@@ -219,8 +219,8 @@ paths:
                   valid:
                     type: boolean
                   user:
-                    $ref: '#/components/schemas/UserSafe'
-        '401':
+                    $ref: "#/components/schemas/UserSafe"
+        "401":
           description: Token ไม่ถูกต้อง
 
   /auth/google:
@@ -248,15 +248,15 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: ข้อมูลโปรไฟล์
           content:
             application/json:
               schema:
                 properties:
                   user:
-                    $ref: '#/components/schemas/UserSafe'
-        '401':
+                    $ref: "#/components/schemas/UserSafe"
+        "401":
           description: ไม่ได้ยืนยันตัวตน
     put:
       tags:
@@ -269,7 +269,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateProfilePayload'
+              $ref: "#/components/schemas/UpdateProfilePayload"
             examples:
               default:
                 value:
@@ -277,7 +277,7 @@ paths:
                   lastName: "Test (Edited)"
                   phone: "0887654321"
       responses:
-        '200':
+        "200":
           description: อัปเดตสำเร็จ
           content:
             application/json:
@@ -286,8 +286,8 @@ paths:
                   message:
                     type: string
                   user:
-                    $ref: '#/components/schemas/UserSafe'
-        '400':
+                    $ref: "#/components/schemas/UserSafe"
+        "400":
           description: ข้อมูลไม่ถูกต้อง
 
   /api/profile/change-password:
@@ -302,18 +302,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ChangePasswordPayload'
+              $ref: "#/components/schemas/ChangePasswordPayload"
             examples:
               default:
                 value:
                   currentPassword: "password123"
                   newPassword: "newPassword456"
       responses:
-        '200':
+        "200":
           description: เปลี่ยนรหัสผ่านสำเร็จ
-        '400':
+        "400":
           description: รหัสผ่านใหม่ไม่ถูกต้อง
-        '401':
+        "401":
           description: รหัสผ่านปัจจุบันไม่ถูกต้อง
 
   /api/user-account/delete-request:
@@ -339,11 +339,11 @@ paths:
                     password: "password123"
                     reason: "ไม่ได้ใช้งานแล้ว"
       responses:
-        '200':
+        "200":
           description: ลบบัญชีสำเร็จ
-        '400':
+        "400":
           description: ไม่สามารถลบได้ (เช่น มีออเดอร์ค้าง)
-        '401':
+        "401":
           description: รหัสผ่านไม่ถูกต้อง
 
   /api/user-account/can-delete:
@@ -354,7 +354,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: สถานะการลบบัญชี
           content:
             application/json:
@@ -364,7 +364,7 @@ paths:
                     type: boolean
                   activeOrders:
                     type: integer
-                  
+
   # ======================================================
   # Addresses Routes (User)
   # ======================================================
@@ -376,14 +376,14 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: รายการที่อยู่
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Address'
+                  $ref: "#/components/schemas/Address"
     post:
       tags:
         - User
@@ -395,7 +395,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewAddressPayload'
+              $ref: "#/components/schemas/NewAddressPayload"
             examples:
               default:
                 value:
@@ -409,13 +409,13 @@ paths:
                   postalCode: "10240"
                   isDefault: true
       responses:
-        '201':
+        "201":
           description: สร้างที่อยู่สำเร็จ
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Address'
-        '400':
+                $ref: "#/components/schemas/Address"
+        "400":
           description: ข้อมูลไม่ถูกต้อง
 
   /api/addresses/{id}:
@@ -437,7 +437,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewAddressPayload'
+              $ref: "#/components/schemas/NewAddressPayload"
             examples:
               default:
                 value:
@@ -451,13 +451,13 @@ paths:
                   postalCode: "10500"
                   isDefault: false
       responses:
-        '200':
+        "200":
           description: อัปเดตสำเร็จ
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Address'
-        '404':
+                $ref: "#/components/schemas/Address"
+        "404":
           description: ไม่พบที่อยู่
     delete:
       tags:
@@ -466,11 +466,11 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '204':
+        "204":
           description: ลบสำเร็จ
-        '400':
+        "400":
           description: ไม่สามารถลบได้ (เช่น ใช้อยู่ในออเดอร์)
-        '404':
+        "404":
           description: ไม่พบที่อยู่
 
   /api/addresses/{id}/default:
@@ -488,9 +488,9 @@ paths:
             type: integer
           example: 2
       responses:
-        '200':
+        "200":
           description: ตั้งค่าสำเร็จ
-        '404':
+        "404":
           description: ไม่พบที่อยู่
 
   /api/addresses/{id}/usage:
@@ -508,9 +508,9 @@ paths:
             type: integer
           example: 2
       responses:
-        '200':
+        "200":
           description: ข้อมูลการใช้งาน
-        '404':
+        "404":
           description: ไม่พบที่อยู่
 
   # ======================================================
@@ -535,15 +535,15 @@ paths:
             enum: [latest, rating, reviews, price_asc, price_desc]
             example: "rating"
       responses:
-        '200':
+        "200":
           description: รายการสินค้า
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Product'
-                  
+                  $ref: "#/components/schemas/Product"
+
   /api/products/search:
     get:
       tags:
@@ -557,14 +557,14 @@ paths:
             type: string
             example: "อาหารแมว"
       responses:
-        '200':
+        "200":
           description: ผลการค้นหา
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Product'
+                  $ref: "#/components/schemas/Product"
 
   /api/products/{id}:
     get:
@@ -579,13 +579,13 @@ paths:
             type: integer
           example: 11
       responses:
-        '200':
+        "200":
           description: ข้อมูลสินค้า
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
-        '404':
+                $ref: "#/components/schemas/Product"
+        "404":
           description: ไม่พบสินค้า
 
   /api/products/{id}/reviews:
@@ -601,14 +601,14 @@ paths:
             type: integer
           example: 14
       responses:
-        '200':
+        "200":
           description: รายการรีวิว
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Review'
+                  $ref: "#/components/schemas/Review"
     post:
       tags:
         - Products
@@ -627,7 +627,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewReviewPayload'
+              $ref: "#/components/schemas/NewReviewPayload"
             examples:
               default:
                 value:
@@ -635,9 +635,9 @@ paths:
                   rating: 5
                   comment: "สินค้าดีมากครับ น้องแมวชอบ"
       responses:
-        '201':
+        "201":
           description: เพิ่มรีวิวสำเร็จ
-        '400':
+        "400":
           description: รีวิวซ้ำ หรือยังไม่ได้ซื้อ
 
   /api/products/{id}/reviews/{reviewId}:
@@ -661,11 +661,11 @@ paths:
             type: integer
           example: 8
       responses:
-        '200':
+        "200":
           description: ลบรีวิวสำเร็จ
-        '403':
+        "403":
           description: ไม่มีสิทธิ์ลบ
-        '404':
+        "404":
           description: ไม่พบรีวิว
 
   # ======================================================
@@ -679,7 +679,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: รายการสินค้าในตะกร้า
           content:
             application/json:
@@ -688,7 +688,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/CartItem'
+                      $ref: "#/components/schemas/CartItem"
   /cart/add:
     post:
       tags:
@@ -712,7 +712,7 @@ paths:
                     productId: 11
                     quantity: 1
       responses:
-        '200':
+        "200":
           description: เพิ่มสินค้าสำเร็จ
 
   /cart/update/{productId}:
@@ -742,7 +742,7 @@ paths:
                   value:
                     quantity: 3
       responses:
-        '200':
+        "200":
           description: อัปเดตสำเร็จ
 
   /cart/remove/{productId}:
@@ -760,7 +760,7 @@ paths:
             type: integer
           example: 11
       responses:
-        '200':
+        "200":
           description: ลบสำเร็จ
 
   /cart/clear:
@@ -771,7 +771,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: ล้างตะกร้าสำเร็จ
 
   # ======================================================
@@ -785,7 +785,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: รายการที่ถูกใจ
           content:
             application/json:
@@ -794,7 +794,7 @@ paths:
                   wishlists:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Product' # ส่งกลับเป็นข้อมูล Product
+                      $ref: "#/components/schemas/Product" # ส่งกลับเป็นข้อมูล Product
     post:
       tags:
         - Wishlist
@@ -814,7 +814,7 @@ paths:
                   value:
                     product_id: 12
       responses:
-        '201':
+        "201":
           description: เพิ่มสำเร็จ
     delete:
       tags:
@@ -823,7 +823,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: ล้างสำเร็จ
 
   /api/wishlists/{productId}:
@@ -841,7 +841,7 @@ paths:
             type: integer
           example: 12
       responses:
-        '200':
+        "200":
           description: ลบสำเร็จ
 
   /api/wishlists/check/{productId}:
@@ -859,7 +859,7 @@ paths:
             type: integer
           example: 12
       responses:
-        '200':
+        "200":
           description: สถานะ
           content:
             application/json:
@@ -879,7 +879,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: รายการคำสั่งซื้อ
           content:
             application/json:
@@ -888,7 +888,7 @@ paths:
                   orders:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Order'
+                      $ref: "#/components/schemas/Order"
     post:
       tags:
         - Orders
@@ -900,7 +900,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewOrderPayload'
+              $ref: "#/components/schemas/NewOrderPayload"
             examples:
               default:
                 value:
@@ -928,15 +928,15 @@ paths:
                   shipping_fee: 0
                   total: 360
       responses:
-        '201':
+        "201":
           description: สร้างคำสั่งซื้อสำเร็จ
           content:
             application/json:
               schema:
                 properties:
                   order:
-                    $ref: '#/components/schemas/Order'
-                  
+                    $ref: "#/components/schemas/Order"
+
   /api/orders/check-purchase/{productId}:
     get:
       tags:
@@ -952,7 +952,7 @@ paths:
             type: integer
           example: 14
       responses:
-        '200':
+        "200":
           description: สถานะการซื้อ
           content:
             application/json:
@@ -976,17 +976,17 @@ paths:
             type: integer
           example: 49
       responses:
-        '200':
+        "200":
           description: ข้อมูลคำสั่งซื้อ
           content:
             application/json:
               schema:
                 properties:
                   order:
-                    $ref: '#/components/schemas/Order'
-        '403':
+                    $ref: "#/components/schemas/Order"
+        "403":
           description: ไม่มีสิทธิ์
-        '404':
+        "404":
           description: ไม่พบคำสั่งซื้อ
 
   /api/orders/{id}/confirm-delivery:
@@ -1004,9 +1004,9 @@ paths:
             type: integer
           example: 48
       responses:
-        '200':
+        "200":
           description: ยืนยันสำเร็จ
-        '400':
+        "400":
           description: สถานะไม่ถูกต้อง (เช่น ยังไม่ได้จัดส่ง)
 
   /api/orders/{id}/cancel:
@@ -1024,9 +1024,9 @@ paths:
             type: integer
           example: 58
       responses:
-        '200':
+        "200":
           description: ยกเลิกสำเร็จ
-        '400':
+        "400":
           description: ไม่สามารถยกเลิกได้ (เช่น จัดส่งแล้ว)
 
   # ======================================================
@@ -1059,17 +1059,17 @@ paths:
                     amount: 360.00
                     payment_method: "mock"
       responses:
-        '200':
+        "200":
           description: สร้าง Payment (Pending) สำเร็จ
           content:
             application/json:
               schema:
                 properties:
                   payment:
-                    $ref: '#/components/schemas/Payment'
-        '400':
+                    $ref: "#/components/schemas/Payment"
+        "400":
           description: จำนวนเงินไม่ตรง
-        '404':
+        "404":
           description: ไม่พบออเดอร์
 
   /api/payments/{id}/success:
@@ -1088,11 +1088,11 @@ paths:
             type: integer
           example: 52
       responses:
-        '200':
+        "200":
           description: ชำระเงินสำเร็จ
-        '400':
+        "400":
           description: สต็อกไม่พอ หรือ ชำระไปแล้ว
-        '404':
+        "404":
           description: ไม่พบ Payment
 
   # ======================================================
@@ -1125,12 +1125,12 @@ paths:
           in: query
           schema:
             type: string
-            enum: ['', customer, admin]
+            enum: ["", customer, admin]
             example: "customer"
       responses:
-        '200':
+        "200":
           description: รายการผู้ใช้
-        '403':
+        "403":
           description: ไม่มีสิทธิ์ (Admin เท่านั้น)
     post:
       tags:
@@ -1143,7 +1143,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminNewUserPayload'
+              $ref: "#/components/schemas/AdminNewUserPayload"
             examples:
               newAdmin:
                 value:
@@ -1154,11 +1154,11 @@ paths:
                   phone: "0899999999"
                   role: "admin"
       responses:
-        '201':
+        "201":
           description: สร้างผู้ใช้สำเร็จ
-        '400':
+        "400":
           description: อีเมลซ้ำ หรือ ข้อมูลไม่ถูกต้อง
-        '403':
+        "403":
           description: ไม่มีสิทธิ์
 
   /api/admin/users/{id}:
@@ -1176,9 +1176,9 @@ paths:
             type: integer
           example: 4
       responses:
-        '200':
+        "200":
           description: ข้อมูลผู้ใช้
-        '404':
+        "404":
           description: ไม่พบผู้ใช้
     put:
       tags:
@@ -1198,7 +1198,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminUpdateUserPayload'
+              $ref: "#/components/schemas/AdminUpdateUserPayload"
             examples:
               default:
                 value:
@@ -1207,9 +1207,9 @@ paths:
                   phone: "0812345679"
                   role: "customer"
       responses:
-        '200':
+        "200":
           description: อัปเดตสำเร็จ
-        '404':
+        "404":
           description: ไม่พบผู้ใช้
     delete:
       tags:
@@ -1225,10 +1225,45 @@ paths:
             type: integer
           example: 10
       responses:
-        '200':
+        "200":
           description: ลบสำเร็จ
-        '400':
+        "400":
           description: ไม่สามารถลบได้ (มีออเดอร์ค้าง หรือลบตัวเอง)
+
+  # <--- ADDED (START) ---
+  /api/admin/users/{id}/audit-logs:
+    get:
+      tags:
+        - Admin - Users
+      summary: (Admin) ดึงประวัติการใช้งาน (Audit Logs)
+      description: ดึง Audit Logs ของผู้ใช้คนเดียว (จาก ใหม่ไปเก่า routes/adminUsers.js) offset ใช้สำหรับการข้ามรายการ
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 3
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: รายการ Audit Logs
+        "403":
+          description: ไม่มีสิทธิ์
+        "404":
+          description: ไม่พบผู้ใช้
+  # <--- ADDED (END) ---
 
   /api/admin/users/{id}/ban:
     post:
@@ -1260,7 +1295,7 @@ paths:
                   value:
                     isBanned: false
       responses:
-        '200':
+        "200":
           description: อัปเดตสถานะแบนสำเร็จ
 
   /api/admin/users/{id}/reset-password:
@@ -1291,7 +1326,7 @@ paths:
                   value:
                     newPassword: "ResetPassword123"
       responses:
-        '200':
+        "200":
           description: รีเซ็ตสำเร็จ
 
   /api/user-account/restore/{userId}:
@@ -1309,9 +1344,9 @@ paths:
             type: integer
           example: 3
       responses:
-        '200':
+        "200":
           description: กู้คืนสำเร็จ
-        '404':
+        "404":
           description: ไม่พบบัญชีที่ถูกลบ
 
   # ======================================================
@@ -1325,15 +1360,15 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: รายการสินค้า
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Product'
-        '403':
+                  $ref: "#/components/schemas/Product"
+        "403":
           description: ไม่มีสิทธิ์
     post:
       tags:
@@ -1370,9 +1405,9 @@ paths:
                     type: string
                     format: binary
       responses:
-        '201':
+        "201":
           description: เพิ่มสินค้าสำเร็จ
-        '403':
+        "403":
           description: ไม่มีสิทธิ์
 
   /api/admin/products/{id}:
@@ -1422,9 +1457,9 @@ paths:
                     type: string
                     format: binary
       responses:
-        '200':
+        "200":
           description: แก้ไขสำเร็จ
-        '404':
+        "404":
           description: ไม่พบสินค้า
     delete:
       tags:
@@ -1440,9 +1475,9 @@ paths:
             type: integer
           example: 11
       responses:
-        '200':
+        "200":
           description: ลบสินค้าสำเร็จ
-        '404':
+        "404":
           description: ไม่พบสินค้า
 
   # ======================================================
@@ -1456,7 +1491,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: รายการคำสั่งซื้อทั้งหมด
           content:
             application/json:
@@ -1465,10 +1500,10 @@ paths:
                   orders:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Order'
+                      $ref: "#/components/schemas/Order"
                   stats:
                     type: object
-        '403':
+        "403":
           description: ไม่มีสิทธิ์
 
   /api/orders/{id}/status:
@@ -1493,17 +1528,26 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [pending_payment, paid, preparing, ready_to_ship, shipping, completed, cancelled]
+                  enum:
+                    [
+                      pending_payment,
+                      paid,
+                      preparing,
+                      ready_to_ship,
+                      shipping,
+                      completed,
+                      cancelled,
+                    ]
               examples:
                 default:
                   value:
                     status: "preparing"
       responses:
-        '200':
+        "200":
           description: อัปเดตสถานะสำเร็จ
-        '400':
+        "400":
           description: สถานะไม่ถูกต้อง
-        '404':
+        "404":
           description: ไม่พบคำสั่งซื้อ
 
 components:
@@ -1547,7 +1591,16 @@ components:
         isDefault:
           type: boolean
           example: false
-      required: [recipientName, phone, addressLine1, subdistrict, district, province, postalCode]
+      required:
+        [
+          recipientName,
+          phone,
+          addressLine1,
+          subdistrict,
+          district,
+          province,
+          postalCode,
+        ]
 
     RegisterPayload:
       type: object
@@ -1574,9 +1627,9 @@ components:
           type: string
           example: "password123"
         address:
-          $ref: '#/components/schemas/NewAddressPayload'
+          $ref: "#/components/schemas/NewAddressPayload"
       required: [firstName, lastName, email, password, confirmPassword, address]
-      
+
     LoginPayload:
       type: object
       properties:
@@ -1613,7 +1666,7 @@ components:
         phone:
           type: string
           example: "0812345679"
-      
+
     ChangePasswordPayload:
       type: object
       properties:
@@ -1625,7 +1678,7 @@ components:
           minLength: 8
           example: "newPassword456"
       required: [currentPassword, newPassword]
-      
+
     NewReviewPayload:
       type: object
       properties:
@@ -1684,7 +1737,7 @@ components:
         total:
           type: number
           example: 1870
-          
+
     AdminNewUserPayload:
       type: object
       properties:
@@ -1708,7 +1761,7 @@ components:
           enum: [customer, admin]
           example: "admin"
       required: [email, password, firstName, lastName, role]
-      
+
     AdminUpdateUserPayload:
       type: object
       properties:
@@ -1734,12 +1787,12 @@ components:
         message:
           type: string
         user:
-          $ref: '#/components/schemas/UserSafe'
+          $ref: "#/components/schemas/UserSafe"
         accessToken:
           type: string
         refreshToken:
           type: string
-          
+
     User:
       type: object
       description: โมเดล User จากตาราง users
@@ -1773,7 +1826,7 @@ components:
         last_name: { type: string, example: "ใจดี" }
         phone: { type: string, example: "0812345678" }
         role: { type: string, enum: [customer, admin], example: "customer" }
-        
+
     Product:
       type: object
       description: โมเดล Product จากตาราง products
@@ -1784,7 +1837,12 @@ components:
         category: { type: string, example: "accessories" }
         price: { type: number, format: "float", example: 220.00 }
         stock: { type: integer, example: 48 }
-        images: { type: array, items: { type: string }, example: ["/uploads/nano-shom-1762589997422.jpg"] }
+        images:
+          {
+            type: array,
+            items: { type: string },
+            example: ["/uploads/nano-shom-1762589997422.jpg"],
+          }
         rating: { type: number, format: "float", example: 0.0 }
         reviews: { type: integer, example: 0 }
         created_at: { type: string, format: date-time }
@@ -1816,9 +1874,14 @@ components:
         id: { type: integer, description: "product_id", example: 11 }
         name: { type: string, example: "Nano แชมพูนาโน" }
         price: { type: number, example: 220.00 }
-        images: { type: array, items: { type: string }, example: ["/uploads/nano-shom-1762589997422.jpg"] }
+        images:
+          {
+            type: array,
+            items: { type: string },
+            example: ["/uploads/nano-shom-1762589997422.jpg"],
+          }
         quantity: { type: integer, example: 2 }
-        
+
     Review:
       type: object
       description: โมเดล Review จากตาราง product_reviews
@@ -1830,7 +1893,7 @@ components:
         rating: { type: integer, example: 5 }
         comment: { type: string, example: "" }
         created_at: { type: string, format: date-time }
-        
+
     Order:
       type: object
       description: โมเดล Order จากตาราง orders
@@ -1838,14 +1901,25 @@ components:
         id: { type: integer, example: 58 }
         user_id: { type: integer, example: 3 }
         order_number: { type: string, example: "ORD-MHUURI1I" }
-        status: { 
-          type: string, 
-          enum: [pending_payment, paid, preparing, ready_to_ship, shipping, completed, cancelled],
-          example: "pending_payment"
-        }
+        status:
+          {
+            type: string,
+            enum:
+              [
+                pending_payment,
+                paid,
+                preparing,
+                ready_to_ship,
+                shipping,
+                completed,
+                cancelled,
+              ],
+            example: "pending_payment",
+          }
         shipping_recipient_name: { type: string, example: "สมชาย ใจดี" }
         shipping_phone: { type: string, example: "0812345678" }
-        shipping_address_line1: { type: string, example: "123/45 ซอยเพชรเกษม 1" }
+        shipping_address_line1:
+          { type: string, example: "123/45 ซอยเพชรเกษม 1" }
         shipping_address_line2: { type: string, example: "" }
         shipping_subdistrict: { type: string, example: "บางหว้า" }
         shipping_district: { type: string, example: "ภาษีเจริญ" }
@@ -1861,12 +1935,12 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/OrderItem'
+            $ref: "#/components/schemas/OrderItem"
         payments:
           type: array
           items:
-            $ref: '#/components/schemas/Payment'
-            
+            $ref: "#/components/schemas/Payment"
+
     OrderItem:
       type: object
       description: โมเดล OrderItem จากตาราง order_items
@@ -1888,10 +1962,11 @@ components:
         user_id: { type: integer }
         payment_method: { type: string, example: "mock" }
         amount: { type: number, example: 1870.00 }
-        payment_status: { 
-          type: string, 
-          enum: [pending, success, failed, refunded],
-          example: "pending"
-        }
+        payment_status:
+          {
+            type: string,
+            enum: [pending, success, failed, refunded],
+            example: "pending",
+          }
         transaction_id: { type: string, example: "MOCK-12345" }
         payment_date: { type: string, format: date-time }
