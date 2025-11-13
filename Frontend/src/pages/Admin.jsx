@@ -412,10 +412,15 @@ export default function Admin() {
     }
   }
 
+  // จำนวนผู้ใช้งานวันนี้ (สมมติจาก stats ที่มี)
+  const todayUsers = stats.totalCustomers;
+
+
   return (
     <div className="admin-container">
       <div className="admin-header">
         <h1>🐾 Admin Dashboard</h1>
+        <h2>จำนวนผู้เข้าใช้งานวันนี้ {todayUsers}</h2>
         <p>จัดการร้านค้าสัตว์เลี้ยงของคุณ</p>
       </div>
 
@@ -603,8 +608,8 @@ export default function Admin() {
                           {product.category !== "food" && product.category !== "toys" && product.category !== "accessories" && product.category}
                         </span>
                       </td>
-                      <td>฿{product.price?.toLocaleString()}</td>
-                      <td>{product.stock}</td>
+                      <td>{product.price?.toLocaleString()} ฿</td>
+                      <td>{product.stock} unit</td>
                       <td>⭐ {product.rating || 0}</td>
                       <td>
                         <div className="action-buttons">

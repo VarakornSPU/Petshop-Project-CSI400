@@ -86,7 +86,7 @@ export default function DeleteAccountModal({ isOpen, onClose, onConfirm, loading
                   </div>
                 </div>
 
-                {/* <div className="form-group">
+                <div className="form-group">
                   <label>เหตุผล (ไม่บังคับ)</label>
                   <textarea
                     value={reason}
@@ -95,7 +95,7 @@ export default function DeleteAccountModal({ isOpen, onClose, onConfirm, loading
                     rows={4}
                     className="delete-reason-textarea"
                   />
-                </div> */}
+                </div>
               </>
             )}
           </div>
